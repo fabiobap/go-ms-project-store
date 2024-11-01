@@ -7,10 +7,10 @@ import (
 )
 
 func Home(w http.ResponseWriter, r *http.Request) {
-	writeResponse(w, http.StatusOK, "API powered by Go v"+runtime.Version())
+	WriteResponse(w, http.StatusOK, "API powered by Go v"+runtime.Version())
 }
 
-func writeResponse(w http.ResponseWriter, code int, data interface{}) {
+func WriteResponse(w http.ResponseWriter, code int, data interface{}) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(code)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
