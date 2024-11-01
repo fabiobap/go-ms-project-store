@@ -5,8 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-ms-project-store/app/handlers"
-	"github.com/go-ms-project-store/domain"
+	domain "github.com/go-ms-project-store/domain/category"
 	"github.com/go-ms-project-store/service"
 )
 
@@ -19,7 +18,7 @@ func Start() {
 	ch := CategoryHandlers{service: service.NewCategoryService(categoryRepositoryDB)}
 
 	mux.Route("/api/v1", func(mux chi.Router) {
-		mux.Get("/home", handlers.Home)
+		mux.Get("/home", Home)
 
 		mux.Route("/admin", func(mux chi.Router) {
 			mux.Get("/categories", ch.getAllCategories)

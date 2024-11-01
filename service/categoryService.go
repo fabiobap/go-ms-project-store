@@ -1,7 +1,7 @@
 package service
 
 import (
-	"github.com/go-ms-project-store/domain"
+	domain "github.com/go-ms-project-store/domain/category"
 	"github.com/go-ms-project-store/errs"
 )
 

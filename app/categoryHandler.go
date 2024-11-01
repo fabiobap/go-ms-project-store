@@ -3,7 +3,6 @@ package app
 import (
 	"net/http"
 
-	"github.com/go-ms-project-store/app/handlers"
 	"github.com/go-ms-project-store/service"
 )
 
@@ -14,8 +13,8 @@ type CategoryHandlers struct {
 func (ch *CategoryHandlers) getAllCategories(w http.ResponseWriter, r *http.Request) {
 	categories, err := ch.service.GetAllCategories()
 	if err != nil {
-		handlers.WriteResponse(w, err.Code, err.AsMessage())
+		writeResponse(w, err.Code, err.AsMessage())
 	} else {
-		handlers.WriteResponse(w, http.StatusOK, categories)
+		writeResponse(w, http.StatusOK, categories)
 	}
 }
