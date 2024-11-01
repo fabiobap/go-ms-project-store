@@ -11,10 +11,10 @@ type CategoryRepositoryDB struct {
 	client *sqlx.DB
 }
 
-func (rdb CategoryRepositoryDB) FindAll() ([]Category, *errs.AppError) {
+func (rdb CategoryRepositoryDB) FindAll() (Categories, *errs.AppError) {
 	var query string
 	var err error
-	categories := make([]Category, 0)
+	categories := Categories{}
 
 	query = "SELECT id, name, slug, created_at, updated_at from categories"
 	err = rdb.client.Select(&categories, query)
