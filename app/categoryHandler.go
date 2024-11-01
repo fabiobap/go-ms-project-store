@@ -15,6 +15,6 @@ func (ch *CategoryHandlers) getAllCategories(w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		writeResponse(w, err.Code, err.AsMessage())
 	} else {
-		writeResponse(w, http.StatusOK, categories)
+		writeResponse(w, http.StatusOK, categories.ToDTO())
 	}
 }
