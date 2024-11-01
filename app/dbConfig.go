@@ -23,7 +23,7 @@ func getDBClient() *sqlx.DB {
 
 	db, err := sqlx.Open(
 		dbCreds.DBCon,
-		fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
+		fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?parseTime=true",
 			dbCreds.DBUser,
 			dbCreds.DBPass,
 			dbCreds.DBHost,
