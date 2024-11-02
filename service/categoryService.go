@@ -1,13 +1,17 @@
 package service
 
 import (
+	"net/http"
+	"strconv"
+
 	domain "github.com/go-ms-project-store/domain/category"
+	dto "github.com/go-ms-project-store/dto/category"
 	"github.com/go-ms-project-store/errs"
 	"github.com/go-ms-project-store/logger"
 )
 
 type CategoryService interface {
-	GetAllCategories() (domain.Categories, *errs.AppError)
+	GetAllCategories(*http.Request) (domain.Categories, int64, dto.DataDBFilter, *errs.AppError)
 	// GetCategory(string) (*dto.CustomerResponse, *errs.AppError)
 }
 
@@ -15,16 +19,57 @@ type DefaultCategoryService struct {
 	repo domain.CategoryRepository
 }
 
-func (s DefaultCategoryService) GetAllCategories() (domain.Categories, *errs.AppError) {
-	categories, err := s.repo.FindAll()
-	if err != nil {
-		logger.Error("Error while finding all categories")
-		return nil, errs.NewUnexpectedError("unexpected database error")
+func (s DefaultCategoryService) GetAllCategories(r *http.Request) (domain.Categories, int64, dto.DataDBFilter, *errs.AppError) {
+	allowedOrderBy := map[string]bool{
+		"id": true, "name": true, "slug": true, "created_at": true, "updated_at": true,
 	}
 
-	return categories, nil
+	filter := GetBaseFilterParams(r, allowedOrderBy)
+	categories, totalRows, err := s.repo.FindAll(filter)
+
+	if err != nil {
+		logger.Error("Error while finding all categories")
+		return nil, 0, dto.DataDBFilter{}, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	return categories, totalRows, filter, nil
 }
 
 func NewCategoryService(repository domain.CategoryRepository) DefaultCategoryService {
 	return DefaultCategoryService{repo: repository}
+}
+
+func GetBaseFilterParams(r *http.Request, allowedOrderBy map[string]bool) dto.DataDBFilter {
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	if page < 1 {
+		page = 1
+	}
+
+	perPage, _ := strconv.Atoi(r.URL.Query().Get("per_page"))
+	if perPage < 1 {
+		perPage = 15 // default value
+	}
+
+	orderBy := r.URL.Query().Get("order_by")
+	if orderBy == "" {
+		orderBy = "id"
+	}
+	if !allowedOrderBy[orderBy] {
+		orderBy = "id"
+	}
+
+	orderDir := r.URL.Query().Get("order_dir")
+	if orderDir == "" {
+		orderDir = "desc"
+	}
+	if orderDir != "asc" && orderDir != "desc" {
+		orderDir = "desc"
+	}
+
+	return dto.DataDBFilter{
+		OrderBy:  orderBy,
+		OrderDir: orderDir,
+		Page:     page,
+		PerPage:  perPage,
+	}
 }
