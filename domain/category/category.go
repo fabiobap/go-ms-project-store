@@ -22,7 +22,7 @@ type CategoryRepository interface {
 	// Save(Category) (*Category, *errs.AppError)
 	// Update(Category) (*Category, *errs.AppError)
 	// FindById(id int) (*Category, *errs.AppError)
-	FindAll() (Categories, *errs.AppError)
+	FindAll(filter dto.DataDBFilter) (Categories, int64, *errs.AppError)
 }
 
 func (c Category) ToCategoryDTO() dto.CategoryResponse {
