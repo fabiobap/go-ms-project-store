@@ -20,7 +20,8 @@ func NewCategoryHandlers(service services.CategoryService) *CategoryHandlers {
 
 func (ch *CategoryHandlers) GetAllCategories(w http.ResponseWriter, r *http.Request) {
 	categories, totalRows, filter, err := ch.Service.GetAllCategories(r)
-	baseURL := helpers.GetBaseURL(r) + "/api/v1/admin/categories"
+
+	baseURL := helpers.GetFullRouteUrl(r)
 
 	paginatedResponse := dto.NewPaginatedResponse(categories.ToDTO(), filter.Page, filter.PerPage, int(totalRows), baseURL)
 	if err != nil {
