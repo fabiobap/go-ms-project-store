@@ -40,7 +40,11 @@ func (s DefaultCategoryService) CreateCategory(req dto.NewCategoryRequest) (*dom
 
 	newCategory, err := s.repo.Create(category)
 	if err != nil {
-		return nil, errs.NewUnexpectedError("unexpected database error")
+		if err.Code != http.StatusUnprocessableEntity {
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		} else {
+			return nil, err
+		}
 	}
 
 	return newCategory, nil

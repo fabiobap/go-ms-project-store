@@ -87,6 +87,13 @@ func (rdb CategoryRepositoryDB) FindById(id int) (*domain.Category, *errs.AppErr
 
 func (rdb CategoryRepositoryDB) Create(c domain.Category) (*domain.Category, *errs.AppError) {
 	var finalSlug string
+	var nameExists *domain.Category
+
+	nameExists, _ = rdb.FindByName(c.Name)
+	if nameExists != nil {
+		logger.Error("Error while creating new category, name already exists")
+		return nil, errs.NewValidationError("The name has already been taken")
+	}
 
 	if c.Slug != "" {
 		// If slug is provided in the request, use it
@@ -118,15 +125,15 @@ func (rdb CategoryRepositoryDB) Create(c domain.Category) (*domain.Category, *er
 	// Prepare query
 	insertQuery := `INSERT INTO categories (name, slug, created_at, updated_at) VALUES (?, ?, ?, ?)`
 
-	res, err := rdb.client.Exec(insertQuery, c.Name, finalSlug, c.CreatedAt, c.UpdatedAt)
-	if err != nil {
-		logger.Error("Error while creating new category " + err.Error())
+	res, sqlxErr := rdb.client.Exec(insertQuery, c.Name, finalSlug, c.CreatedAt, c.UpdatedAt)
+	if sqlxErr != nil {
+		logger.Error("Error while creating new category " + sqlxErr.Error())
 		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
-	id, err := res.LastInsertId()
-	if err != nil {
-		logger.Error("Error while getting last insert id for new category " + err.Error())
+	id, sqlxErr := res.LastInsertId()
+	if sqlxErr != nil {
+		logger.Error("Error while getting last insert id for new category " + sqlxErr.Error())
 		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
@@ -180,6 +187,31 @@ func (rdb CategoryRepositoryDB) FindBySlug(slug string) (*domain.Category, *errs
 	var category domain.Category
 
 	err := rdb.client.Get(&category, query, slug)
+
+	if err != nil {
+		logger.Error("Error while querying category table " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	return &category, nil
+}
+
+func (rdb CategoryRepositoryDB) FindByName(name string) (*domain.Category, *errs.AppError) {
+
+	// Prepare query
+	query := `SELECT
+		id,
+		name,
+		slug,
+		created_at,
+		updated_at
+	FROM categories
+	WHERE name = ?
+    `
+
+	var category domain.Category
+
+	err := rdb.client.Get(&category, query, name)
 
 	if err != nil {
 		logger.Error("Error while querying category table " + err.Error())
