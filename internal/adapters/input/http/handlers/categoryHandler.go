@@ -38,10 +38,12 @@ func (ch *CategoryHandlers) CreateCategory(w http.ResponseWriter, r *http.Reques
 	err := json.NewDecoder(r.Body).Decode(&categoryRequest)
 	if err != nil {
 		helpers.WriteResponse(w, http.StatusBadRequest, err.Error())
+		return
 	}
 
 	if err := dto.ValidateCategory(&categoryRequest); err != nil {
 		helpers.WriteResponse(w, http.StatusUnprocessableEntity, err)
+		return
 	}
 
 	category, errCat := ch.Service.CreateCategory(categoryRequest)

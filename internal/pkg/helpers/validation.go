@@ -6,33 +6,58 @@ import (
 	"github.com/go-playground/validator/v10"
 )
 
-type ValidationError struct {
-	Field   string
-	Message string
+type ValidationResponse struct {
+	Message string              `json:"message"`
+	Errors  map[string][]string `json:"errors"`
 }
 
-func GetValidationErrors(err error) []ValidationError {
-	var errors []ValidationError
-	for _, err := range err.(validator.ValidationErrors) {
-		var element ValidationError
-		element.Field = err.Field()
+func GetValidationErrors(err error) *ValidationResponse {
+	if err != nil {
+		validationErrors := err.(validator.ValidationErrors)
+		errors := make(map[string][]string)
+		var firstMessage string
 
-		// Customize error messages based on the validation tag
-		switch err.Tag() {
-		case "required":
-			element.Message = fmt.Sprintf("%s field is required", err.Field())
-		case "min":
-			element.Message = fmt.Sprintf("%s field must be at least %s characters long", err.Field(), err.Param())
-		case "max":
-			element.Message = fmt.Sprintf("%s field must not exceed %s characters", err.Field(), err.Param())
-		case "lowercase":
-			element.Message = fmt.Sprintf("%s field must be lowercase", err.Field())
-		default:
-			element.Message = fmt.Sprintf("%s field validation failed on %s", err.Field(), err.Tag())
+		for _, err := range validationErrors {
+			field := err.Field()
+			field = makeFirstLetterLower(field) // convert Name to name
+			var message string
+
+			switch err.Tag() {
+			case "required":
+				message = fmt.Sprintf("The %s field is required.", field)
+			case "min":
+				message = fmt.Sprintf("The %s must be at least %s characters.", field, err.Param())
+			case "max":
+				message = fmt.Sprintf("The %s must not exceed %s characters.", field, err.Param())
+			case "lowercase":
+				message = fmt.Sprintf("The %s must be lowercase.", field)
+			default:
+				message = fmt.Sprintf("The %s field is invalid.", field)
+			}
+
+			if firstMessage == "" {
+				firstMessage = message
+			}
+
+			if errors[field] == nil {
+				errors[field] = []string{}
+			}
+			errors[field] = append(errors[field], message)
 		}
 
-		errors = append(errors, element)
+		return &ValidationResponse{
+			Message: firstMessage,
+			Errors:  errors,
+		}
 	}
 
-	return errors
+	return nil
+}
+
+// Helper function to convert first letter to lowercase
+func makeFirstLetterLower(s string) string {
+	if len(s) == 0 {
+		return s
+	}
+	return fmt.Sprintf("%c%s", s[0]|32, s[1:]) // convert first letter to lowercase
 }
