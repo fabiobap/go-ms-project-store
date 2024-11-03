@@ -1,11 +1,12 @@
-package domain
+package repositories
 
 import (
 	"fmt"
 
-	dto "github.com/go-ms-project-store/dto/category"
-	"github.com/go-ms-project-store/errs"
-	"github.com/go-ms-project-store/logger"
+	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
+	"github.com/go-ms-project-store/internal/core/domain"
+	"github.com/go-ms-project-store/internal/pkg/errs"
+	"github.com/go-ms-project-store/internal/pkg/logger"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/jmoiron/sqlx"
 )
@@ -14,9 +15,9 @@ type CategoryRepositoryDB struct {
 	client *sqlx.DB
 }
 
-func (rdb CategoryRepositoryDB) FindAll(filter dto.DataDBFilter) (Categories, int64, *errs.AppError) {
+func (rdb CategoryRepositoryDB) FindAll(filter dto.DataDBFilter) (domain.Categories, int64, *errs.AppError) {
 	var total int64
-	categories := Categories{}
+	categories := domain.Categories{}
 
 	countQuery := `SELECT COUNT(*) FROM categories`
 	err := rdb.client.Get(&total, countQuery)
