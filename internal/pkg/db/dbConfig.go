@@ -1,4 +1,4 @@
-package app
+package db
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ type DBData struct {
 	DBPort string
 }
 
-func getDBClient() *sqlx.DB {
+func GetDBClient() *sqlx.DB {
 	var dbCreds = DBData{}
 	setDBData(&dbCreds)
 

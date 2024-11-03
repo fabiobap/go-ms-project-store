@@ -1,13 +1,13 @@
-package service
+package services
 
 import (
 	"net/http"
 	"strconv"
 
-	domain "github.com/go-ms-project-store/domain/category"
-	dto "github.com/go-ms-project-store/dto/category"
-	"github.com/go-ms-project-store/errs"
-	"github.com/go-ms-project-store/logger"
+	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
+	"github.com/go-ms-project-store/internal/core/domain"
+	"github.com/go-ms-project-store/internal/pkg/errs"
+	"github.com/go-ms-project-store/internal/pkg/logger"
 )
 
 type CategoryService interface {

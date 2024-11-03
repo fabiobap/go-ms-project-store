@@ -3,9 +3,9 @@ package domain
 import (
 	"time"
 
-	dto "github.com/go-ms-project-store/dto/category"
-	"github.com/go-ms-project-store/errs"
-	"github.com/go-ms-project-store/helpers"
+	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
+	"github.com/go-ms-project-store/internal/pkg/errs"
+	"github.com/go-ms-project-store/internal/pkg/helpers"
 )
 
 type Category struct {
