@@ -92,7 +92,7 @@ func (rdb CategoryRepositoryDB) Create(c domain.Category) (*domain.Category, *er
 	nameExists, _ = rdb.FindByName(c.Name)
 	if nameExists != nil {
 		logger.Error("Error while creating new category, name already exists")
-		return nil, errs.NewValidationError("The name has already been taken")
+		return nil, errs.NewValidationError("name", "The name has already been taken")
 	}
 
 	if c.Slug != "" {
