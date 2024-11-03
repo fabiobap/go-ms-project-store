@@ -9,7 +9,7 @@ import (
 )
 
 type Category struct {
-	Id        int32     `db:"id"`
+	Id        int64     `db:"id"`
 	Name      string    `db:"name"`
 	Slug      string    `db:"slug"`
 	CreatedAt time.Time `db:"created_at"`
@@ -19,10 +19,20 @@ type Category struct {
 type Categories []Category
 
 type CategoryRepository interface {
-	// Save(Category) (*Category, *errs.AppError)
-	// Update(Category) (*Category, *errs.AppError)
-	// FindById(id int) (*Category, *errs.AppError)
+	Create(Category) (*Category, *errs.AppError)
+	// Delete(id int) (*Category, *errs.AppError)
 	FindAll(filter dto.DataDBFilter) (Categories, int64, *errs.AppError)
+	// FindById(id int) (*Category, *errs.AppError)
+	// Update(Category) (*Category, *errs.AppError)
+}
+
+func NewCategory(req dto.NewCategoryRequest) Category {
+	return Category{
+		Name:      req.Name,
+		Slug:      req.Slug,
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
 }
 
 func (c Category) ToCategoryDTO() dto.CategoryResponse {
