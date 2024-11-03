@@ -12,7 +12,7 @@ import (
 
 type CategoryService interface {
 	GetAllCategories(*http.Request) (domain.Categories, int64, dto.DataDBFilter, *errs.AppError)
-	// GetCategory(string) (*dto.CustomerResponse, *errs.AppError)
+	CreateCategory(dto.NewCategoryRequest) (*domain.Category, *errs.AppError)
 }
 
 type DefaultCategoryService struct {
@@ -33,6 +33,17 @@ func (s DefaultCategoryService) GetAllCategories(r *http.Request) (domain.Catego
 	}
 
 	return categories, totalRows, filter, nil
+}
+
+func (s DefaultCategoryService) CreateCategory(req dto.NewCategoryRequest) (*domain.Category, *errs.AppError) {
+	category := domain.NewCategory(req)
+
+	newCategory, err := s.repo.Create(category)
+	if err != nil {
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	return newCategory, nil
 }
 
 func NewCategoryService(repository domain.CategoryRepository) DefaultCategoryService {
