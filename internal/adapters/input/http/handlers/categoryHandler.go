@@ -48,7 +48,7 @@ func (ch *CategoryHandlers) CreateCategory(w http.ResponseWriter, r *http.Reques
 
 	category, errCat := ch.Service.CreateCategory(categoryRequest)
 	if errCat != nil {
-		helpers.WriteResponse(w, errCat.Code, errCat.AsMessage())
+		helpers.WriteResponse(w, errCat.Code, errCat)
 	} else {
 		helpers.WriteResponse(w, http.StatusCreated, category.ToCategoryDTO())
 	}

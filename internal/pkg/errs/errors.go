@@ -3,8 +3,9 @@ package errs
 import "net/http"
 
 type AppError struct {
-	Code    int    `json:",omitempty"`
-	Message string `json:"message"`
+	Code    int                 `json:"-"`
+	Message string              `json:"message"`
+	Errors  map[string][]string `json:"errors,omitempty"`
 }
 
 func (e AppError) AsMessage() *AppError {
@@ -27,9 +28,12 @@ func NewUnexpectedError(message string) *AppError {
 	}
 }
 
-func NewValidationError(message string) *AppError {
+func NewValidationError(field, message string) *AppError {
 	return &AppError{
 		Message: message,
 		Code:    http.StatusUnprocessableEntity,
+		Errors: map[string][]string{
+			field: {message},
+		},
 	}
 }
