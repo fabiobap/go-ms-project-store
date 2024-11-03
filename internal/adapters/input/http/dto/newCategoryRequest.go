@@ -10,7 +10,7 @@ type NewCategoryRequest struct {
 	Slug string `json:"slug" validate:"omitempty,min=3,max=250"`
 }
 
-func ValidateCategory(category *NewCategoryRequest) []helpers.ValidationError {
+func ValidateCategory(category *NewCategoryRequest) *helpers.ValidationResponse {
 	validate := validator.New()
 	err := validate.Struct(category)
 
