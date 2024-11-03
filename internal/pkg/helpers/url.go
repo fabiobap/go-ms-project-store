@@ -3,7 +3,13 @@ package helpers
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/go-ms-project-store/internal/adapters/input/http/middlewares"
 )
+
+func GetCurrentUri(r *http.Request) string {
+	return r.Context().Value(middlewares.RoutePatternKey).(string)
+}
 
 func GetBaseURL(r *http.Request) string {
 	scheme := "http"
@@ -17,4 +23,8 @@ func GetBaseURL(r *http.Request) string {
 	}
 
 	return fmt.Sprintf("%s://%s", scheme, host)
+}
+
+func GetFullRouteUrl(r *http.Request) string {
+	return GetBaseURL(r) + GetCurrentUri(r)
 }

@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-ms-project-store/internal/adapters/input/http/handlers"
+	"github.com/go-ms-project-store/internal/adapters/input/http/middlewares"
 	"github.com/go-ms-project-store/internal/core/repositories"
 	"github.com/go-ms-project-store/internal/core/services"
 	"github.com/go-ms-project-store/internal/pkg/db"
@@ -10,6 +11,8 @@ import (
 
 func Routes() *chi.Mux {
 	mux := chi.NewRouter()
+
+	mux.Use(middlewares.StoreRoutePattern)
 
 	dbClient := db.GetDBClient()
 
