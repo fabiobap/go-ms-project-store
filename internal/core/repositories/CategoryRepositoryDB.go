@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"database/sql"
 	"fmt"
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
@@ -61,7 +62,6 @@ func (rdb CategoryRepositoryDB) FindAll(filter dto.DataDBFilter) (domain.Categor
 }
 
 func (rdb CategoryRepositoryDB) FindById(id int) (*domain.Category, *errs.AppError) {
-
 	// Prepare query
 	query := `SELECT
 		id,
@@ -78,8 +78,12 @@ func (rdb CategoryRepositoryDB) FindById(id int) (*domain.Category, *errs.AppErr
 	err := rdb.client.Get(&category, query, id)
 
 	if err != nil {
-		logger.Error("Error while querying category table " + err.Error())
-		return nil, errs.NewUnexpectedError("unexpected database error")
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("Category not found")
+		} else {
+			logger.Error("Error while querying category table " + err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
 	}
 
 	return &category, nil
@@ -189,8 +193,12 @@ func (rdb CategoryRepositoryDB) FindBySlug(slug string) (*domain.Category, *errs
 	err := rdb.client.Get(&category, query, slug)
 
 	if err != nil {
-		logger.Error("Error while querying category table " + err.Error())
-		return nil, errs.NewUnexpectedError("unexpected database error")
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("Category not found")
+		} else {
+			logger.Error("Error while querying category table " + err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
 	}
 
 	return &category, nil
@@ -214,8 +222,12 @@ func (rdb CategoryRepositoryDB) FindByName(name string) (*domain.Category, *errs
 	err := rdb.client.Get(&category, query, name)
 
 	if err != nil {
-		logger.Error("Error while querying category table " + err.Error())
-		return nil, errs.NewUnexpectedError("unexpected database error")
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("Category not found")
+		} else {
+			logger.Error("Error while querying category table " + err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
 	}
 
 	return &category, nil

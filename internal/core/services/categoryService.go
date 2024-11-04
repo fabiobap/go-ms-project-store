@@ -13,6 +13,7 @@ import (
 type CategoryService interface {
 	GetAllCategories(*http.Request) (domain.Categories, int64, dto.DataDBFilter, *errs.AppError)
 	CreateCategory(dto.NewCategoryRequest) (*domain.Category, *errs.AppError)
+	FindCategoryById(int) (*domain.Category, *errs.AppError)
 }
 
 type DefaultCategoryService struct {
@@ -50,6 +51,18 @@ func (s DefaultCategoryService) CreateCategory(req dto.NewCategoryRequest) (*dom
 	return newCategory, nil
 }
 
+func (s DefaultCategoryService) FindCategoryById(id int) (*domain.Category, *errs.AppError) {
+	category, err := s.repo.FindById(id)
+	if err != nil {
+		if err.Code != http.StatusNotFound {
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		} else {
+			return nil, err
+		}
+	}
+
+	return category, nil
+}
 func NewCategoryService(repository domain.CategoryRepository) DefaultCategoryService {
 	return DefaultCategoryService{repo: repository}
 }

@@ -22,7 +22,7 @@ type CategoryRepository interface {
 	Create(Category) (*Category, *errs.AppError)
 	// Delete(id int) (*Category, *errs.AppError)
 	FindAll(filter dto.DataDBFilter) (Categories, int64, *errs.AppError)
-	// FindById(id int) (*Category, *errs.AppError)
+	FindById(id int) (*Category, *errs.AppError)
 	// Update(Category) (*Category, *errs.AppError)
 }
 
