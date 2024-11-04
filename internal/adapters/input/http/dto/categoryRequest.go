@@ -13,18 +13,16 @@ type NewCategoryRequest struct {
 	Slug string `json:"slug" validate:"omitempty,min=3,max=250"`
 }
 
-type CategoryUpdatedRequest struct {
+type UpdateCategoryRequest struct {
 	Name string `json:"name" validate:"required,min=3,max=250"`
 	Slug string `json:"slug" validate:"omitempty,min=3,max=250"`
 }
 
-// Implement the Validate method for NewCategoryRequest
 func (ncr *NewCategoryRequest) Validate() *helpers.ValidationResponse {
 	return helpers.ValidateRequests(ncr)
 }
 
-// Implement the Validate method for CategoryUpdatedRequest
-func (cur *CategoryUpdatedRequest) Validate() *helpers.ValidationResponse {
+func (cur *UpdateCategoryRequest) Validate() *helpers.ValidationResponse {
 	return helpers.ValidateRequests(cur)
 }
 
