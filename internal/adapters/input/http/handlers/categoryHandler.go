@@ -66,3 +66,14 @@ func (ch *CategoryHandlers) CreateCategory(w http.ResponseWriter, r *http.Reques
 		helpers.WriteResponse(w, http.StatusCreated, category.ToCategoryDTO())
 	}
 }
+
+func (ch *CategoryHandlers) DeleteCategory(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+
+	_, err := ch.Service.DeleteCategory(id)
+	if err != nil {
+		helpers.WriteResponse(w, err.Code, err.AsMessage())
+	} else {
+		helpers.WriteResponse(w, http.StatusNoContent, "")
+	}
+}

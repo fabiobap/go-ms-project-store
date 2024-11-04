@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -162,14 +163,22 @@ func (rdb CategoryRepositoryDB) Update(c domain.Category) (*domain.Category, *er
 }
 
 func (rdb CategoryRepositoryDB) Delete(id int) *errs.AppError {
-
-	// Prepare query
 	query := `DELETE FROM categories WHERE id = ?`
 
-	_, err := rdb.client.Exec(query, id)
+	result, err := rdb.client.ExecContext(context.Background(), query, id)
 	if err != nil {
-		logger.Error("Error while deleting category " + err.Error())
+		logger.Error("Error while deleting category: " + err.Error())
 		return errs.NewUnexpectedError("unexpected database error")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.Error("Error getting rows affected: " + err.Error())
+		return errs.NewUnexpectedError("unexpected database error")
+	}
+
+	if rowsAffected == 0 {
+		return errs.NewNotFoundError("Category not found")
 	}
 
 	return nil
