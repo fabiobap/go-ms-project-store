@@ -1,8 +1,9 @@
-package dto
+package pagination
 
 import (
 	"fmt"
 	"math"
+	"net/http"
 	"strconv"
 )
 
@@ -41,6 +42,41 @@ type DataDBFilter struct {
 	OrderDir string
 	Page     int
 	PerPage  int
+}
+
+func GetBaseFilterParams(r *http.Request, allowedOrderBy map[string]bool) DataDBFilter {
+	page, _ := strconv.Atoi(r.URL.Query().Get("page"))
+	if page < 1 {
+		page = 1
+	}
+
+	perPage, _ := strconv.Atoi(r.URL.Query().Get("per_page"))
+	if perPage < 1 {
+		perPage = 15 // default value
+	}
+
+	orderBy := r.URL.Query().Get("order_by")
+	if orderBy == "" {
+		orderBy = "id"
+	}
+	if !allowedOrderBy[orderBy] {
+		orderBy = "id"
+	}
+
+	orderDir := r.URL.Query().Get("order_dir")
+	if orderDir == "" {
+		orderDir = "desc"
+	}
+	if orderDir != "asc" && orderDir != "desc" {
+		orderDir = "desc"
+	}
+
+	return DataDBFilter{
+		OrderBy:  orderBy,
+		OrderDir: orderDir,
+		Page:     page,
+		PerPage:  perPage,
+	}
 }
 
 func NewPaginatedResponse(data interface{}, page, perPage, total int, baseURL string) PaginatedResponse {
