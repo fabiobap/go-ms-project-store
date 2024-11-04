@@ -23,7 +23,7 @@ type CategoryRepository interface {
 	Delete(id int) *errs.AppError
 	FindAll(filter dto.DataDBFilter) (Categories, int64, *errs.AppError)
 	FindById(id int) (*Category, *errs.AppError)
-	// Update(Category) (*Category, *errs.AppError)
+	Update(Category) (*Category, *errs.AppError)
 }
 
 func NewCategory(req dto.NewCategoryRequest) Category {
