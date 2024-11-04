@@ -5,10 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/core/domain"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/logger"
+	"github.com/go-ms-project-store/internal/pkg/pagination"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gosimple/slug"
 	"github.com/jmoiron/sqlx"
@@ -18,7 +18,7 @@ type CategoryRepositoryDB struct {
 	client *sqlx.DB
 }
 
-func (rdb CategoryRepositoryDB) FindAll(filter dto.DataDBFilter) (domain.Categories, int64, *errs.AppError) {
+func (rdb CategoryRepositoryDB) FindAll(filter pagination.DataDBFilter) (domain.Categories, int64, *errs.AppError) {
 	var total int64
 	categories := domain.Categories{}
 

@@ -6,6 +6,7 @@ import (
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
+	"github.com/go-ms-project-store/internal/pkg/pagination"
 )
 
 type Category struct {
@@ -21,7 +22,7 @@ type Categories []Category
 type CategoryRepository interface {
 	Create(Category) (*Category, *errs.AppError)
 	Delete(id int) *errs.AppError
-	FindAll(filter dto.DataDBFilter) (Categories, int64, *errs.AppError)
+	FindAll(filter pagination.DataDBFilter) (Categories, int64, *errs.AppError)
 	FindById(id int) (*Category, *errs.AppError)
 	Update(Category) (*Category, *errs.AppError)
 }

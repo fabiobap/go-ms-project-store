@@ -9,6 +9,7 @@ import (
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/core/services"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
+	"github.com/go-ms-project-store/internal/pkg/pagination"
 )
 
 type CategoryHandlers struct {
@@ -26,7 +27,7 @@ func (ch *CategoryHandlers) GetAllCategories(w http.ResponseWriter, r *http.Requ
 
 	baseURL := helpers.GetFullRouteUrl(r)
 
-	paginatedResponse := dto.NewPaginatedResponse(categories.ToDTO(), filter.Page, filter.PerPage, int(totalRows), baseURL)
+	paginatedResponse := pagination.NewPaginatedResponse(categories.ToDTO(), filter.Page, filter.PerPage, int(totalRows), baseURL)
 	if err != nil {
 		helpers.WriteResponse(w, err.Code, err.AsMessage())
 	} else {
