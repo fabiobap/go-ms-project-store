@@ -14,6 +14,7 @@ type CategoryService interface {
 	GetAllCategories(*http.Request) (domain.Categories, int64, dto.DataDBFilter, *errs.AppError)
 	CreateCategory(dto.NewCategoryRequest) (*domain.Category, *errs.AppError)
 	FindCategoryById(int) (*domain.Category, *errs.AppError)
+	DeleteCategory(int) (bool, *errs.AppError)
 }
 
 type DefaultCategoryService struct {
@@ -63,6 +64,20 @@ func (s DefaultCategoryService) FindCategoryById(id int) (*domain.Category, *err
 
 	return category, nil
 }
+
+func (s DefaultCategoryService) DeleteCategory(id int) (bool, *errs.AppError) {
+	err := s.repo.Delete(id)
+	if err != nil {
+		if err.Code != http.StatusNotFound {
+			return false, errs.NewUnexpectedError("unexpected database error")
+		} else {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
 func NewCategoryService(repository domain.CategoryRepository) DefaultCategoryService {
 	return DefaultCategoryService{repo: repository}
 }
