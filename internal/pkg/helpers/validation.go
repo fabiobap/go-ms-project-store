@@ -11,7 +11,18 @@ type ValidationResponse struct {
 	Errors  map[string][]string `json:"errors"`
 }
 
-func GetValidationErrors(err error) *ValidationResponse {
+func ValidateRequests(s interface{}) *ValidationResponse {
+	validate := validator.New()
+	err := validate.Struct(s)
+
+	if err != nil {
+		return getValidationErrors(err)
+	}
+
+	return nil
+}
+
+func getValidationErrors(err error) *ValidationResponse {
 	if err != nil {
 		validationErrors := err.(validator.ValidationErrors)
 		errors := make(map[string][]string)
