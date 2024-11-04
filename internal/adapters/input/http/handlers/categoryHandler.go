@@ -3,7 +3,9 @@ package handlers
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/core/services"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
@@ -29,6 +31,17 @@ func (ch *CategoryHandlers) GetAllCategories(w http.ResponseWriter, r *http.Requ
 		helpers.WriteResponse(w, err.Code, err.AsMessage())
 	} else {
 		helpers.WriteResponse(w, http.StatusOK, paginatedResponse)
+	}
+}
+
+func (ch *CategoryHandlers) GetCategory(w http.ResponseWriter, r *http.Request) {
+	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
+
+	category, err := ch.Service.FindCategoryById(id)
+	if err != nil {
+		helpers.WriteResponse(w, err.Code, err.AsMessage())
+	} else {
+		helpers.WriteResponse(w, http.StatusOK, category.ToCategoryDTO())
 	}
 }
 

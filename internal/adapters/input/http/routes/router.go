@@ -24,7 +24,7 @@ func Routes() *chi.Mux {
 
 		mux.Route("/admin", func(mux chi.Router) {
 			mux.Get("/categories", ch.GetAllCategories)
-			// mux.Get("/categories/{id}", ch.GetCategory)
+			mux.Get("/categories/{id}", ch.GetCategory)
 			mux.Post("/categories", ch.CreateCategory)
 			// mux.Put("/categories/{id}", ch.UpdateCategory)
 			// mux.Delete("/categories/{id}", ch.DeleteCategory)
