@@ -2,6 +2,7 @@ package services
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/core/domain"
@@ -15,6 +16,7 @@ type CategoryService interface {
 	CreateCategory(dto.NewCategoryRequest) (*domain.Category, *errs.AppError)
 	FindCategoryById(int) (*domain.Category, *errs.AppError)
 	DeleteCategory(int) (bool, *errs.AppError)
+	UpdateCategory(int64, dto.UpdateCategoryRequest) (*domain.Category, *errs.AppError)
 }
 
 type DefaultCategoryService struct {
@@ -47,6 +49,27 @@ func (s DefaultCategoryService) CreateCategory(req dto.NewCategoryRequest) (*dom
 		} else {
 			return nil, err
 		}
+	}
+
+	return newCategory, nil
+}
+
+func (s DefaultCategoryService) UpdateCategory(id int64, req dto.UpdateCategoryRequest) (*domain.Category, *errs.AppError) {
+	category := domain.Category{
+		Id:        id,
+		Name:      req.Name,
+		Slug:      req.Slug,
+		UpdatedAt: time.Now(),
+	}
+
+	newCategory, err := s.repo.Update(category)
+	if err != nil {
+		if err.Code == http.StatusUnprocessableEntity {
+			return nil, err
+		} else if err.Code == http.StatusNotFound {
+			return nil, err
+		}
+		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
 	return newCategory, nil
