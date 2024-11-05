@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	"github.com/go-ms-project-store/internal/core/domain"
+	"github.com/go-ms-project-store/internal/pkg/db"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/logger"
 	"github.com/go-ms-project-store/internal/pkg/pagination"
@@ -16,12 +17,7 @@ import (
 
 type CategoryRepositoryDB struct {
 	client   *sqlx.DB
-	verifier *FieldVerifier
-}
-
-type FieldVerifier struct {
-	DB        *sqlx.DB
-	TableName string
+	verifier *db.FieldVerifier
 }
 
 func (rdb CategoryRepositoryDB) Create(c domain.Category) (*domain.Category, *errs.AppError) {
@@ -279,28 +275,10 @@ func (rdb CategoryRepositoryDB) Update(c domain.Category) (*domain.Category, *er
 	return updatedCategory, nil
 }
 
-// VerifyUniqueField checks if a field value is unique in the table, excluding a specific ID
-func (fv *FieldVerifier) VerifyUniqueField(fieldName, fieldValue string, excludeID int64) *errs.AppError {
-	query := fmt.Sprintf("SELECT id FROM %s WHERE %s = ? AND id != ?", fv.TableName, fieldName)
-	var existingID int64
-	err := fv.DB.QueryRow(query, fieldValue, excludeID).Scan(&existingID)
-
-	if err != nil && err != sql.ErrNoRows {
-		logger.Error(fmt.Sprintf("Error checking for existing %s: %s", fieldName, err.Error()))
-		return errs.NewUnexpectedError("Unexpected database error")
-	}
-
-	if err == nil {
-		return errs.NewValidationError(fieldName, fmt.Sprintf("A record with this %s already exists", fieldName))
-	}
-
-	return nil
-}
-
 func NewCategoryRepositoryDB(dbClient *sqlx.DB) CategoryRepositoryDB {
 	return CategoryRepositoryDB{
 		client: dbClient,
-		verifier: &FieldVerifier{
+		verifier: &db.FieldVerifier{
 			DB:        dbClient,
 			TableName: "categories",
 		},

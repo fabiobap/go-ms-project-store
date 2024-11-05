@@ -17,17 +17,28 @@ func Routes() *chi.Mux {
 	dbClient := db.GetDBClient()
 
 	categoryRepositoryDB := repositories.NewCategoryRepositoryDB(dbClient)
+	productRepositoryDB := repositories.NewProductRepositoryDB(dbClient)
 	ch := handlers.NewCategoryHandlers(services.NewCategoryService(categoryRepositoryDB))
+	ph := handlers.NewProductHandlers(services.NewProductService(productRepositoryDB))
 
 	mux.Route("/api/v1", func(mux chi.Router) {
 		mux.Get("/home", handlers.Home)
 
 		mux.Route("/admin", func(mux chi.Router) {
-			mux.Get("/categories", ch.GetAllCategories)
-			mux.Get("/categories/{id}", ch.GetCategory)
-			mux.Post("/categories", ch.CreateCategory)
-			mux.Put("/categories/{id}", ch.UpdateCategory)
-			mux.Delete("/categories/{id}", ch.DeleteCategory)
+			mux.Route("/categories", func(mux chi.Router) {
+				mux.Get("/", ch.GetAllCategories)
+				mux.Get("/{id}", ch.GetCategory)
+				mux.Post("/", ch.CreateCategory)
+				mux.Put("/{id}", ch.UpdateCategory)
+				mux.Delete("/{id}", ch.DeleteCategory)
+			})
+			mux.Route("/products", func(mux chi.Router) {
+				mux.Get("/", ph.GetAllProducts)
+				mux.Get("/{id}", ph.GetProduct)
+				mux.Post("/", ph.CreateProduct)
+				mux.Put("/{id}", ph.UpdateProduct)
+				mux.Delete("/{id}", ph.DeleteProduct)
+			})
 		})
 	})
 
