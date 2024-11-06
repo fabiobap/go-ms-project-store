@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	dto "github.com/go-ms-project-store/internal/adapters/input/http/dto/category"
+	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 	"github.com/go-ms-project-store/internal/pkg/pagination"

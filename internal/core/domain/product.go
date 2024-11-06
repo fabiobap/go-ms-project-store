@@ -3,7 +3,7 @@ package domain
 import (
 	"time"
 
-	dto "github.com/go-ms-project-store/internal/adapters/input/http/dto/product"
+	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 	"github.com/go-ms-project-store/internal/pkg/pagination"
@@ -43,18 +43,29 @@ func NewProduct(req dto.NewProductRequest) Product {
 	}
 }
 
-func (c Product) ToProductDTO() dto.ProductResponse {
+func (p Product) ToProductDTO() dto.ProductResponse {
 	return dto.ProductResponse{
-		Id:          c.Id,
-		UUID:        c.UUID,
-		Name:        c.Name,
-		Description: c.Description,
-		Amount:      c.Amount,
-		Image:       c.Image,
-		Slug:        c.Slug,
-		CategoryId:  c.CategoryId,
-		CreatedAt:   helpers.DatetimeToString(c.CreatedAt),
-		UpdatedAt:   helpers.DatetimeToString(c.UpdatedAt),
+		Id:          p.Id,
+		UUID:        p.UUID,
+		Name:        p.Name,
+		Description: p.Description,
+		Amount:      p.Amount,
+		Image:       p.Image,
+		Slug:        p.Slug,
+		CategoryId:  p.CategoryId,
+		CreatedAt:   helpers.DatetimeToString(p.CreatedAt),
+		UpdatedAt:   helpers.DatetimeToString(p.UpdatedAt),
+		Category: dto.CategoryResponse{
+			Id:   p.Category.Id,
+			Name: p.Category.Name,
+			Slug: p.Category.Slug,
+			CreatedAt: helpers.DatetimeToString(
+				p.Category.CreatedAt,
+			),
+			UpdatedAt: helpers.DatetimeToString(
+				p.Category.UpdatedAt,
+			),
+		},
 	}
 }
 
