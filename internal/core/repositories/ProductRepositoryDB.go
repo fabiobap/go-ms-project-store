@@ -4,16 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"time"
 
 	"github.com/go-ms-project-store/internal/core/domain"
 	"github.com/go-ms-project-store/internal/pkg/db"
 	"github.com/go-ms-project-store/internal/pkg/errs"
-	"github.com/go-ms-project-store/internal/pkg/helpers"
 	"github.com/go-ms-project-store/internal/pkg/logger"
 	"github.com/go-ms-project-store/internal/pkg/pagination"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/google/uuid"
 	"github.com/gosimple/slug"
 	"github.com/jmoiron/sqlx"
 )
@@ -113,97 +110,8 @@ func (rdb ProductRepositoryDB) Delete(id int) *errs.AppError {
 }
 
 func (rdb ProductRepositoryDB) FindById(id int) (*domain.Product, *errs.AppError) {
-	var err error
-
-	// Prepare query
 	query := `
     SELECT 
-        p.id,
-        p.uuid,
-        p.name as name,
-        p.slug,
-        p.category_id, 
-        p.description, 
-        p.amount,
-        p.image,
-        p.created_at,
-        p.updated_at,
-        c.id AS category_id,
-        c.name AS category_name,
-        c.slug AS category_slug,
-		c.created_at AS category_created_at,
-		c.updated_at AS category_updated_at
-    FROM products p
-    LEFT JOIN categories c ON p.category_id = c.id
-    WHERE p.id = ?`
-
-	result := make(map[string]interface{})
-	err = rdb.client.QueryRowx(query, id).MapScan(result)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errs.NewNotFoundError("product not found")
-		}
-		logger.Error("Error while scanning product row " + err.Error())
-		return nil, errs.NewUnexpectedError("unexpected database error")
-	}
-
-	product := &domain.Product{}
-
-	// Handle UUID
-	uuidBytes, ok := result["uuid"].([]uint8)
-	if !ok {
-		logger.Error(fmt.Sprintf("Unexpected UUID type: %T", result["uuid"]))
-		return nil, errs.NewUnexpectedError("unexpected UUID format")
-	}
-	if len(uuidBytes) == 16 {
-		product.UUID, err = uuid.FromBytes(uuidBytes)
-	} else if len(uuidBytes) == 36 {
-		product.UUID, err = uuid.ParseBytes(uuidBytes)
-	} else {
-		err = fmt.Errorf("unexpected UUID byte length: %d", len(uuidBytes))
-	}
-	if err != nil {
-		logger.Error("Error processing UUID: " + err.Error())
-		return nil, errs.NewUnexpectedError("error processing UUID")
-	}
-
-	// Handle other fields with type assertions
-	product.Id, _ = result["id"].(int64)
-	product.Name = helpers.DBByteToString(result["name"])
-	product.Slug = helpers.DBByteToString(result["slug"])
-	product.CategoryId, _ = result["category_id"].(int64)
-	product.Description = helpers.DBByteToString(result["description"])
-	if amount, ok := result["amount"].(int64); ok {
-		product.Amount = int32(amount)
-	}
-	product.Image = helpers.DBByteToString(result["image"])
-	product.CreatedAt, _ = result["created_at"].(time.Time)
-	product.UpdatedAt, _ = result["updated_at"].(time.Time)
-
-	product.Category.Id, _ = result["category_id"].(int64)
-	product.Category.Name = helpers.DBByteToString(result["category_name"])
-	product.Category.Slug = helpers.DBByteToString(result["category_slug"])
-	product.Category.CreatedAt, _ = result["category_created_at"].(time.Time)
-	product.Category.UpdatedAt, _ = result["category_updated_at"].(time.Time)
-
-	return product, nil
-}
-
-func (rdb ProductRepositoryDB) FindAll(filter pagination.DataDBFilter) (domain.Products, int64, *errs.AppError) {
-	var total int64
-	products := domain.Products{}
-
-	countQuery := `SELECT COUNT(*) FROM products`
-
-	err := rdb.client.Get(&total, countQuery)
-	if err != nil {
-		logger.Error("Error while counting product table " + err.Error())
-		return nil, 0, errs.NewUnexpectedError("unexpected database error")
-	}
-
-	query := fmt.Sprintf(`
-	SELECT 
         p.id,
         p.uuid,
         p.name,
@@ -214,11 +122,51 @@ func (rdb ProductRepositoryDB) FindAll(filter pagination.DataDBFilter) (domain.P
         p.image,
         p.created_at,
         p.updated_at,
-        c.id AS category_id,
-        c.name AS category_name,
-        c.slug AS category_slug,
-		c.created_at AS category_created_at,
-		c.updated_at AS category_updated_at
+        c.id,
+        c.name,
+        c.slug,
+        c.created_at,
+        c.updated_at
+    FROM products p
+    LEFT JOIN categories c ON p.category_id = c.id
+    WHERE p.id = ?`
+
+	row := rdb.client.QueryRowx(query, id)
+	return rdb.scanProduct(row)
+}
+
+func (rdb ProductRepositoryDB) FindAll(filter pagination.DataDBFilter) (domain.Products, int64, *errs.AppError) {
+	var total int64
+	products := domain.Products{}
+
+	countQuery := `SELECT COUNT(*) FROM products`
+	err := rdb.client.Get(&total, countQuery)
+	if err != nil {
+		logger.Error("Error while counting product table " + err.Error())
+		return nil, 0, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	if filter.OrderBy == "id" {
+		filter.OrderBy = "p.id"
+	}
+
+	query := fmt.Sprintf(`
+    SELECT 
+        p.id,
+        p.uuid,
+        p.name,
+        p.slug,
+        p.category_id, 
+        p.description, 
+        p.amount,
+        p.image,
+        p.created_at,
+        p.updated_at,
+        c.id,
+        c.name,
+        c.slug,
+        c.created_at,
+        c.updated_at
     FROM products p
     LEFT JOIN categories c ON p.category_id = c.id
     ORDER BY %s %s
@@ -227,15 +175,9 @@ func (rdb ProductRepositoryDB) FindAll(filter pagination.DataDBFilter) (domain.P
 		filter.OrderBy,
 		filter.OrderDir)
 
-	// Calculate offset
 	offset := (filter.Page - 1) * filter.PerPage
 
-	rows, err := rdb.client.Queryx(
-		query,
-		filter.PerPage,
-		offset,
-	)
-
+	rows, err := rdb.client.Queryx(query, filter.PerPage, offset)
 	if err != nil {
 		logger.Error("Error while querying product table " + err.Error())
 		return nil, 0, errs.NewUnexpectedError("unexpected database error")
@@ -243,34 +185,11 @@ func (rdb ProductRepositoryDB) FindAll(filter pagination.DataDBFilter) (domain.P
 	defer rows.Close()
 
 	for rows.Next() {
-		var result map[string]interface{}
-		err = rows.MapScan(result)
+		product, err := rdb.scanProducts(rows)
 		if err != nil {
-			logger.Error("Error while scanning product row " + err.Error())
-			return nil, 0, errs.NewUnexpectedError("unexpected database error")
+			return nil, 0, err
 		}
-
-		product := domain.Product{
-			Id:          result["id"].(int64),
-			UUID:        result["uuid"].(uuid.UUID),
-			Name:        result["name"].(string),
-			Slug:        result["slug"].(string),
-			CategoryId:  result["category_id"].(int64),
-			Description: result["description"].(string),
-			Amount:      result["amount"].(int32),
-			Image:       result["image"].(string),
-			CreatedAt:   result["created_at"].(time.Time),
-			UpdatedAt:   result["updated_at"].(time.Time),
-			Category: domain.Category{
-				Id:        result["category_id"].(int64),
-				Name:      result["category_name"].(string),
-				Slug:      result["category_slug"].(string),
-				CreatedAt: result["category_created_at"].(time.Time),
-				UpdatedAt: result["category_updated_at"].(time.Time),
-			},
-		}
-
-		products = append(products, product)
+		products = append(products, *product)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -282,71 +201,11 @@ func (rdb ProductRepositoryDB) FindAll(filter pagination.DataDBFilter) (domain.P
 }
 
 func (rdb ProductRepositoryDB) FindByName(name string) (*domain.Product, *errs.AppError) {
-
-	// Prepare query
-	query := `SELECT
-		id,
-		uuid,
-		name,
-		slug,
-		category_id, 
-		description, 
-		amount,
-		image,
-		created_at,
-		updated_at
-	FROM products
-	WHERE name = ?
-    `
-
-	var product domain.Product
-
-	err := rdb.client.Get(&product, query, name)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errs.NewNotFoundError("Product not found")
-		} else {
-			logger.Error("Error while querying product table " + err.Error())
-			return nil, errs.NewUnexpectedError("unexpected database error")
-		}
-	}
-
-	return &product, nil
+	return rdb.findByField("name", name)
 }
 
 func (rdb ProductRepositoryDB) FindBySlug(slug string) (*domain.Product, *errs.AppError) {
-
-	// Prepare query
-	query := `SELECT
-		id,
-		uuid,
-		name,
-		slug,
-		category_id, 
-		description, 
-		amount,
-		image,
-		created_at,
-		updated_at
-	FROM products
-	WHERE slug = ?
-    `
-
-	var product domain.Product
-
-	err := rdb.client.Get(&product, query, slug)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errs.NewNotFoundError("Product not found")
-		} else {
-			logger.Error("Error while querying product table " + err.Error())
-			return nil, errs.NewUnexpectedError("unexpected database error")
-		}
-	}
-
-	return &product, nil
+	return rdb.findByField("slug", slug)
 }
 
 func (rdb ProductRepositoryDB) Update(p domain.Product) (*domain.Product, *errs.AppError) {
@@ -410,4 +269,111 @@ func NewProductRepositoryDB(dbClient *sqlx.DB) ProductRepositoryDB {
 			TableName: "products",
 		},
 	}
+}
+
+func (rdb ProductRepositoryDB) findByField(field, value string) (*domain.Product, *errs.AppError) {
+	query := `SELECT
+        id,
+        uuid,
+        name,
+        slug,
+        category_id, 
+        description, 
+        amount,
+        image,
+        created_at,
+        updated_at
+    FROM products
+    WHERE ` + field + ` = ?`
+
+	var product domain.Product
+
+	err := rdb.client.Get(&product, query, value)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("Product not found")
+		} else {
+			logger.Error("Error while querying product table " + err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
+	}
+
+	return &product, nil
+}
+
+func (rdb ProductRepositoryDB) processProduct(product *domain.Product, category *domain.Category, uuidBytes []byte) (*domain.Product, *errs.AppError) {
+	processedUUID, err := db.ProcessUUID(uuidBytes)
+	if err != nil {
+		return nil, errs.NewUnexpectedError("error processing UUID")
+	}
+
+	product.UUID = processedUUID
+	product.Category = *category
+	return product, nil
+}
+
+func (rdb ProductRepositoryDB) scanProduct(row *sqlx.Row) (*domain.Product, *errs.AppError) {
+	var product domain.Product
+	var category domain.Category
+	var uuidBytes []byte
+
+	err := row.Scan(
+		&product.Id,
+		&uuidBytes,
+		&product.Name,
+		&product.Slug,
+		&product.CategoryId,
+		&product.Description,
+		&product.Amount,
+		&product.Image,
+		&product.CreatedAt,
+		&product.UpdatedAt,
+		&category.Id,
+		&category.Name,
+		&category.Slug,
+		&category.CreatedAt,
+		&category.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("product not found")
+		}
+		logger.Error("Error while scanning product row " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	return rdb.processProduct(&product, &category, uuidBytes)
+}
+
+func (rdb ProductRepositoryDB) scanProducts(rows *sqlx.Rows) (*domain.Product, *errs.AppError) {
+	var product domain.Product
+	var category domain.Category
+	var uuidBytes []byte
+
+	err := rows.Scan(
+		&product.Id,
+		&uuidBytes,
+		&product.Name,
+		&product.Slug,
+		&product.CategoryId,
+		&product.Description,
+		&product.Amount,
+		&product.Image,
+		&product.CreatedAt,
+		&product.UpdatedAt,
+		&category.Id,
+		&category.Name,
+		&category.Slug,
+		&category.CreatedAt,
+		&category.UpdatedAt,
+	)
+
+	if err != nil {
+		logger.Error("Error while scanning product row " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	return rdb.processProduct(&product, &category, uuidBytes)
 }

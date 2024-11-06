@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/logger"
+	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 )
 
@@ -23,6 +24,27 @@ type DBData struct {
 type FieldVerifier struct {
 	DB        *sqlx.DB
 	TableName string
+}
+
+// ProcessUUID converts byte slice to UUID
+func ProcessUUID(uuidBytes []byte) (uuid.UUID, error) {
+	var processedUUID uuid.UUID
+	var err error
+
+	if len(uuidBytes) == 16 {
+		processedUUID, err = uuid.FromBytes(uuidBytes)
+	} else if len(uuidBytes) == 36 {
+		processedUUID, err = uuid.ParseBytes(uuidBytes)
+	} else {
+		err = fmt.Errorf("unexpected UUID byte length: %d", len(uuidBytes))
+	}
+
+	if err != nil {
+		logger.Error("Error processing UUID: " + err.Error())
+		return uuid.Nil, err
+	}
+
+	return processedUUID, nil
 }
 
 // VerifyUniqueField checks if a field value is unique in the table, excluding a specific ID
