@@ -23,6 +23,13 @@ type ProductRepositoryDB struct {
 func (rdb ProductRepositoryDB) Create(p domain.Product) (*domain.Product, *errs.AppError) {
 	var finalSlug string
 	var nameExists *domain.Product
+	crb := NewCategoryRepositoryDB(rdb.client)
+
+	categoryExists, appError := crb.FindById(int(p.CategoryId))
+	if appError != nil {
+		logger.Error("Error while creating new product, category does not exist")
+		return nil, errs.NewValidationError("category_id", "The category does not exist")
+	}
 
 	nameExists, _ = rdb.FindByName(p.Name)
 	if nameExists != nil {
@@ -64,12 +71,23 @@ func (rdb ProductRepositoryDB) Create(p domain.Product) (*domain.Product, *errs.
 		category_id, 
 		description, 
 		amount, 
+		image,
 		uuid, 
 		created_at, 
 		updated_at) 
-		VALUES (?, ?, ?, ?, ?, ?, ?)`
+		VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
 
-	res, sqlxErr := rdb.client.Exec(insertQuery, p.Name, finalSlug, p.CategoryId, p.Description, p.Amount, p.UUID, p.CreatedAt, p.UpdatedAt)
+	res, sqlxErr := rdb.client.Exec(
+		insertQuery,
+		p.Name,
+		finalSlug,
+		p.CategoryId,
+		p.Description,
+		p.Amount,
+		p.Image,
+		p.UUID,
+		p.CreatedAt,
+		p.UpdatedAt)
 	if sqlxErr != nil {
 		logger.Error("Error while creating new product " + sqlxErr.Error())
 		return nil, errs.NewUnexpectedError("unexpected database error")
@@ -83,6 +101,7 @@ func (rdb ProductRepositoryDB) Create(p domain.Product) (*domain.Product, *errs.
 
 	p.Id = id
 	p.Slug = finalSlug
+	p.Category = *categoryExists
 
 	return &p, nil
 }
