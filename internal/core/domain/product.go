@@ -49,12 +49,13 @@ func NewProduct(req dto.NewProductRequest) Product {
 }
 
 func (p Product) ToProductDTO() dto.ProductResponse {
+	amount := float64(p.Amount) / 100
 	return dto.ProductResponse{
 		Id:          p.Id,
 		UUID:        p.UUID,
 		Name:        p.Name,
 		Description: p.Description,
-		Amount:      p.Amount,
+		Amount:      helpers.NumberFormat(amount, 2, ".", ","),
 		Image:       p.Image,
 		Slug:        p.Slug,
 		CategoryId:  p.CategoryId,
