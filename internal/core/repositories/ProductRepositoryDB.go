@@ -229,6 +229,13 @@ func (rdb ProductRepositoryDB) FindBySlug(slug string) (*domain.Product, *errs.A
 
 func (rdb ProductRepositoryDB) Update(p domain.Product) (*domain.Product, *errs.AppError) {
 	var err error
+	crb := NewCategoryRepositoryDB(rdb.client)
+
+	categoryExists, appError := crb.FindById(int(p.CategoryId))
+	if appError != nil {
+		logger.Error("Error while creating new product, category does not exist")
+		return nil, errs.NewValidationError("category_id", "The category does not exist")
+	}
 
 	// First, check if the product exists
 	existingProduct, errPkg := rdb.FindById(int(p.Id))
@@ -276,6 +283,8 @@ func (rdb ProductRepositoryDB) Update(p domain.Product) (*domain.Product, *errs.
 	if errPkg != nil {
 		return nil, errs.NewUnexpectedError("Error fetching updated product")
 	}
+
+	updatedProduct.Category = *categoryExists
 
 	return updatedProduct, nil
 }
