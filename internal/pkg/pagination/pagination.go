@@ -65,10 +65,10 @@ func GetBaseFilterParams(r *http.Request, allowedOrderBy map[string]bool) DataDB
 
 	orderDir := r.URL.Query().Get("order_dir")
 	if orderDir == "" {
-		orderDir = "desc"
+		orderDir = "asc"
 	}
 	if orderDir != "asc" && orderDir != "desc" {
-		orderDir = "desc"
+		orderDir = "asc"
 	}
 
 	return DataDBFilter{
