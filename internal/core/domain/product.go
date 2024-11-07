@@ -36,10 +36,15 @@ type ProductRepository interface {
 
 func NewProduct(req dto.NewProductRequest) Product {
 	return Product{
-		Name:      req.Name,
-		Slug:      req.Slug,
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		Name:        req.Name,
+		Slug:        req.Slug,
+		Description: req.Description,
+		Amount:      req.Amount,
+		Image:       "https://placehold.co/600x400",
+		CategoryId:  req.CategoryId,
+		UUID:        uuid.New(),
+		CreatedAt:   time.Now(),
+		UpdatedAt:   time.Now(),
 	}
 }
 
