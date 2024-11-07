@@ -25,7 +25,7 @@ type DefaultProductService struct {
 
 func (s DefaultProductService) GetAllProducts(r *http.Request) (domain.Products, int64, pagination.DataDBFilter, *errs.AppError) {
 	allowedOrderBy := map[string]bool{
-		"id": true, "name": true, "slug": true, "product_id": true, "created_at": true, "updated_at": true,
+		"id": true, "name": true, "slug": true, "category_id": true, "created_at": true, "updated_at": true,
 	}
 
 	filter := pagination.GetBaseFilterParams(r, allowedOrderBy)
