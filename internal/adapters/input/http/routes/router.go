@@ -18,8 +18,11 @@ func Routes() *chi.Mux {
 
 	categoryRepositoryDB := repositories.NewCategoryRepositoryDB(dbClient)
 	productRepositoryDB := repositories.NewProductRepositoryDB(dbClient)
+	userRepositoryDB := repositories.NewUserRepositoryDB(dbClient)
+
 	ch := handlers.NewCategoryHandlers(services.NewCategoryService(categoryRepositoryDB))
 	ph := handlers.NewProductHandlers(services.NewProductService(productRepositoryDB))
+	uh := handlers.NewUserHandlers(services.NewUserService(userRepositoryDB))
 
 	mux.Route("/api/v1", func(mux chi.Router) {
 		mux.Get("/home", handlers.Home)
@@ -38,6 +41,12 @@ func Routes() *chi.Mux {
 				mux.Post("/", ph.CreateProduct)
 				mux.Put("/{id}", ph.UpdateProduct)
 				mux.Delete("/{id}", ph.DeleteProduct)
+			})
+			mux.Route("/users", func(mux chi.Router) {
+				mux.Get("/user-admins", uh.GetAllUserAdmins)
+				mux.Get("/user-customers", uh.GetAllUserAdmins)
+				mux.Get("/{id}", uh.GetUser)
+				mux.Delete("/{id}", uh.DeleteUser)
 			})
 		})
 	})
