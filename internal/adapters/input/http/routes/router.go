@@ -44,7 +44,7 @@ func Routes() *chi.Mux {
 			})
 			mux.Route("/users", func(mux chi.Router) {
 				mux.Get("/user-admins", uh.GetAllUserAdmins)
-				mux.Get("/user-customers", uh.GetAllUserAdmins)
+				mux.Get("/user-customers", uh.GetAllUserCustomers)
 				mux.Get("/{id}", uh.GetUser)
 				mux.Delete("/{id}", uh.DeleteUser)
 			})
