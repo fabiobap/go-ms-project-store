@@ -49,19 +49,21 @@ func (rdb UserRepositoryDB) Delete(id string) *errs.AppError {
 func (rdb UserRepositoryDB) FindById(id string) (*domain.User, *errs.AppError) {
 	query := `
     SELECT 
-        id,
-        uuid,
-        name,
-        email,
-        role_id, 
-        email_verified_at, 
-        created_at,
-        updated_at
-    FROM users
-    WHERE uuid = ?`
+        u.id,
+        u.uuid,
+        u.name,
+        u.email,
+        u.role_id,
+        r.name AS role_name,
+        u.email_verified_at, 
+        u.created_at,
+        u.updated_at
+    FROM users u
+    JOIN roles r ON u.role_id = r.id
+    WHERE u.uuid = ?`
 
 	row := rdb.client.QueryRowx(query, id)
-	return rdb.scanUser(row)
+	return rdb.scanUserWithRole(row)
 }
 
 func (rdb UserRepositoryDB) FindAll(filter pagination.DataDBFilter, roleName string) (domain.Users, int64, *errs.AppError) {
@@ -69,7 +71,7 @@ func (rdb UserRepositoryDB) FindAll(filter pagination.DataDBFilter, roleName str
 	users := domain.Users{}
 
 	// Base query for counting
-	countQuery := "SELECT COUNT(*) FROM users u"
+	countQuery := "SELECT COUNT(*) FROM users u JOIN roles r ON u.role_id = r.id"
 
 	// Base query for selecting users
 	baseQuery := `
@@ -78,17 +80,19 @@ func (rdb UserRepositoryDB) FindAll(filter pagination.DataDBFilter, roleName str
         u.uuid,
         u.name,
         u.email,
-        u.role_id, 
+        u.role_id,
+		r.name AS role_name,
         u.email_verified_at, 
         u.created_at,
         u.updated_at
-    FROM users u`
+    FROM users u
+	JOIN roles r ON u.role_id = r.id`
 
 	// If roleName is provided, add it to the queries
 	var args []interface{}
 	if roleName != "" {
-		countQuery += " JOIN roles ON u.role_id = roles.id WHERE roles.name = ?"
-		baseQuery += " JOIN roles ON u.role_id = roles.id WHERE roles.name = ?"
+		countQuery += " WHERE r.name = ?"
+		baseQuery += " WHERE r.name = ?"
 		args = append(args, roleName)
 	}
 
@@ -113,6 +117,12 @@ func (rdb UserRepositoryDB) FindAll(filter pagination.DataDBFilter, roleName str
 	offset := (filter.Page - 1) * filter.PerPage
 	args = append(args, filter.PerPage, offset)
 
+	// countQueryDebug := rdb.client.Rebind(countQuery)
+	// debugQuery := rdb.client.Rebind(query)
+	// fmt.Println("Debug - Query:", debugQuery)
+	// fmt.Println("Debug - CQuery:", countQueryDebug)
+	// fmt.Println("Debug - roleName:", roleName)
+
 	// Execute the main query
 	rows, err := rdb.client.Queryx(query, args...)
 	if err != nil {
@@ -122,7 +132,7 @@ func (rdb UserRepositoryDB) FindAll(filter pagination.DataDBFilter, roleName str
 	defer rows.Close()
 
 	for rows.Next() {
-		user, err := rdb.scanUser(rows)
+		user, err := rdb.scanUserWithRole(rows)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -186,6 +196,39 @@ func (rdb UserRepositoryDB) scanUser(s scanner) (*domain.User, *errs.AppError) {
 		}
 		logger.Error("Error while scanning user row " + err.Error())
 		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	return rdb.processUser(&user, uuidBytes)
+}
+
+func (rdb UserRepositoryDB) scanUserWithRole(s scanner) (*domain.User, *errs.AppError) {
+	var user domain.User
+	var uuidBytes []byte
+	var roleName string
+
+	err := s.Scan(
+		&user.Id,
+		&uuidBytes,
+		&user.Name,
+		&user.Email,
+		&user.RoleId,
+		&roleName,
+		&user.EmailVerifiedAt,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errs.NewNotFoundError("user not found")
+		}
+		logger.Error("Error while scanning user row " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	user.Role = domain.Role{
+		Id:   user.RoleId,
+		Name: roleName,
 	}
 
 	return rdb.processUser(&user, uuidBytes)
