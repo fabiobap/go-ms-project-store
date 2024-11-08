@@ -19,6 +19,7 @@ type User struct {
 	EmailVerifiedAt time.Time `db:"email_verified_at"`
 	CreatedAt       time.Time `db:"created_at"`
 	UpdatedAt       time.Time `db:"updated_at"`
+	Role            Role
 }
 
 type Users []User
@@ -37,9 +38,14 @@ func (u User) ToUserDTO() dto.UserResponse {
 		UUID:            u.UUID,
 		Name:            u.Name,
 		Email:           u.Email,
+		RoleId:          u.RoleId,
 		EmailVerifiedAt: helpers.DatetimeToString(u.EmailVerifiedAt),
 		CreatedAt:       helpers.DatetimeToString(u.CreatedAt),
 		UpdatedAt:       helpers.DatetimeToString(u.UpdatedAt),
+		Role: dto.RoleResponse{
+			Id:   u.Role.Id,
+			Name: u.Role.Name,
+		},
 	}
 }
 
