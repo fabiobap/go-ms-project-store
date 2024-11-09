@@ -42,6 +42,8 @@ func getValidationErrors(err error) *ValidationResponse {
 				message = fmt.Sprintf("The %s must not exceed %s characters.", field, err.Param())
 			case "lowercase":
 				message = fmt.Sprintf("The %s must be lowercase.", field)
+			case "email":
+				message = fmt.Sprintf("The %s must be a valid email address.", field)
 			default:
 				message = fmt.Sprintf("The %s field is invalid.", field)
 			}
