@@ -21,6 +21,13 @@ func NewNotFoundError(message string) *AppError {
 	}
 }
 
+func NewUnauthorizedError(message string) *AppError {
+	return &AppError{
+		Message: message,
+		Code:    http.StatusUnauthorized,
+	}
+}
+
 func NewUnexpectedError(message string) *AppError {
 	return &AppError{
 		Message: message,
