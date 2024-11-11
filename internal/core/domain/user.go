@@ -15,6 +15,7 @@ type User struct {
 	UUID            uuid.UUID `db:"uuid"`
 	Name            string    `db:"name"`
 	Email           string    `db:"email"`
+	Password        string    `db:"password"`
 	RoleId          int64     `db:"role_id"`
 	EmailVerifiedAt time.Time `db:"email_verified_at"`
 	CreatedAt       time.Time `db:"created_at"`

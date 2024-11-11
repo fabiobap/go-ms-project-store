@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-ms-project-store/internal/adapters/input/http/middlewares"
+	"github.com/go-ms-project-store/internal/core/enums"
 )
 
 func GetCurrentUri(r *http.Request) string {
-	return r.Context().Value(middlewares.RoutePatternKey).(string)
+	return r.Context().Value(enums.RoutePatternKey).(string)
 }
 
 func GetBaseURL(r *http.Request) string {

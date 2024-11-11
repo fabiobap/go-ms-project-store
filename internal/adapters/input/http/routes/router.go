@@ -12,14 +12,18 @@ import (
 func Routes() *chi.Mux {
 	mux := chi.NewRouter()
 
-	mux.Use(middlewares.StoreRoutePattern)
-
 	dbClient := db.GetDBClient()
+
+	authRepositoryDB := repositories.NewAuthRepositoryDB(dbClient)
+
+	mux.Use(middlewares.StoreRoutePattern)
+	authMiddleware := middlewares.NewAuthMiddleware(authRepositoryDB)
 
 	categoryRepositoryDB := repositories.NewCategoryRepositoryDB(dbClient)
 	productRepositoryDB := repositories.NewProductRepositoryDB(dbClient)
 	userRepositoryDB := repositories.NewUserRepositoryDB(dbClient)
 
+	ah := handlers.NewAuthHandlers(services.NewAuthService(authRepositoryDB))
 	ch := handlers.NewCategoryHandlers(services.NewCategoryService(categoryRepositoryDB))
 	ph := handlers.NewProductHandlers(services.NewProductService(productRepositoryDB))
 	uh := handlers.NewUserHandlers(services.NewUserService(userRepositoryDB))
@@ -27,7 +31,15 @@ func Routes() *chi.Mux {
 	mux.Route("/api/v1", func(mux chi.Router) {
 		mux.Get("/home", handlers.Home)
 
+		mux.Route("/auth", func(mux chi.Router) {
+			mux.Post("/login", ah.Login)
+			// mux.Post("/register", ch.GetCategory)
+			// mux.Post("/refresh-token", ch.CreateCategory)
+			// mux.Post("/logout", ch.UpdateCategory)
+			// mux.Get("/me", ch.DeleteCategory)
+		})
 		mux.Route("/admin", func(mux chi.Router) {
+			mux.Use(authMiddleware.Middleware)
 			mux.Route("/categories", func(mux chi.Router) {
 				mux.Get("/", ch.GetAllCategories)
 				mux.Get("/{id}", ch.GetCategory)
