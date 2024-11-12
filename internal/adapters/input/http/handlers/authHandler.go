@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
+	"github.com/go-ms-project-store/internal/adapters/input/http/middlewares"
 	"github.com/go-ms-project-store/internal/core/services"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 )
@@ -35,14 +36,24 @@ func (ah *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func (ch *AuthHandlers) Logout(w http.ResponseWriter, r *http.Request) {
-// 	// paginatedResponse := pagination.NewPaginatedResponse(users.ToDTO(), filter.Page, filter.PerPage, int(totalRows), baseURL)
-// 	if err != nil {
-// 		helpers.WriteResponse(w, err.Code, err.AsMessage())
-// 	} else {
-// 		helpers.WriteResponse(w, http.StatusOK, paginatedResponse)
-// 	}
-// }
+func (ch *AuthHandlers) Logout(w http.ResponseWriter, r *http.Request) {
+	//get context
+	user_id, ok := middlewares.GetUserID(r.Context())
+	if !ok {
+		helpers.WriteResponse(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	err := ch.Service.Logout(user_id)
+	if err != nil {
+		helpers.WriteResponse(w, err.Code, err.AsMessage())
+	} else {
+		msg := map[string]string{
+			"message": "Successfully logged out",
+		}
+		helpers.WriteResponse(w, http.StatusOK, msg)
+	}
+}
 
 // func (ch *AuthHandlers) Me(w http.ResponseWriter, r *http.Request) {
 // 	// paginatedResponse := pagination.NewPaginatedResponse(users.ToDTO(), filter.Page, filter.PerPage, int(totalRows), baseURL)

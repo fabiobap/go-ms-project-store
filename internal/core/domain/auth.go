@@ -30,6 +30,7 @@ type AuthRepository interface {
 	CreateRefreshToken(Token) (*Token, *errs.AppError)
 	ValidateToken(string) (uint64, *errs.AppError)
 	Login(AuthUser) (*User, *errs.AppError)
+	Logout(uint64) *errs.AppError
 	// Register(User) (*User, *errs.AppError)
 }
 

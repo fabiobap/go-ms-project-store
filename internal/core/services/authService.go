@@ -13,6 +13,7 @@ import (
 
 type AuthService interface {
 	Login(dto.NewLoginRequest) (*dto.TokenResponse, *errs.AppError)
+	Logout(uint64) *errs.AppError
 	// Register(dto.RegisterRequest) (*domain.Auth, *errs.AppError)
 	// Me(dto.RegisterRequest) (*domain.Auth, *errs.AppError)
 }
@@ -70,6 +71,15 @@ func (s DefaultAuthService) Login(req dto.NewLoginRequest) (*dto.TokenResponse, 
 	}
 
 	return &res, nil
+}
+
+func (s DefaultAuthService) Logout(user_id uint64) *errs.AppError {
+	err := s.repo.Logout(user_id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func NewAuthService(repository domain.AuthRepository) DefaultAuthService {

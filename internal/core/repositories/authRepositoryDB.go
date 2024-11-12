@@ -96,6 +96,20 @@ func (rdb AuthRepositoryDB) Login(au domain.AuthUser) (*domain.User, *errs.AppEr
 	return &user, nil
 }
 
+func (rdb AuthRepositoryDB) Logout(id uint64) *errs.AppError {
+	// Prepare query
+	query := `DELETE FROM personal_access_tokens WHERE tokenable_id = ?`
+
+	// Execute query
+	_, err := rdb.client.Exec(query, id)
+	if err != nil {
+		logger.Error("Error while deleting tokens " + err.Error())
+		return errs.NewUnexpectedError("unexpected database error")
+	}
+
+	return nil
+}
+
 func (rdb AuthRepositoryDB) ValidateToken(fullToken string) (uint64, *errs.AppError) {
 	tokenID, tokenString, err := helpers.ParseToken(fullToken)
 	if err != nil {
