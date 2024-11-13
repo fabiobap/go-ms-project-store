@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-ms-project-store/internal/core/domain"
 	"github.com/go-ms-project-store/internal/core/enums"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 	"github.com/go-ms-project-store/internal/pkg/logger"
@@ -16,7 +17,8 @@ import (
 )
 
 type AuthRepositoryDB struct {
-	client *sqlx.DB
+	client   *sqlx.DB
+	userRepo ports.UserRepository
 }
 
 func (rdb AuthRepositoryDB) createToken(tokenType string, au domain.Token) (*domain.Token, *errs.AppError) {
@@ -110,6 +112,10 @@ func (rdb AuthRepositoryDB) Logout(id uint64) *errs.AppError {
 	return nil
 }
 
+func (rdb AuthRepositoryDB) UserRepo() ports.UserRepository {
+	return rdb.userRepo
+}
+
 func (rdb AuthRepositoryDB) ValidateToken(fullToken string) (uint64, *errs.AppError) {
 	tokenID, tokenString, err := helpers.ParseToken(fullToken)
 	if err != nil {
@@ -158,6 +164,7 @@ func (rdb AuthRepositoryDB) ValidateToken(fullToken string) (uint64, *errs.AppEr
 
 func NewAuthRepositoryDB(dbClient *sqlx.DB) AuthRepositoryDB {
 	return AuthRepositoryDB{
-		client: dbClient,
+		client:   dbClient,
+		userRepo: NewUserRepositoryDB(dbClient),
 	}
 }

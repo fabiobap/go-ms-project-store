@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-ms-project-store/internal/core/domain"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/logger"
 	"github.com/go-ms-project-store/internal/pkg/pagination"
@@ -18,7 +19,7 @@ type UserService interface {
 }
 
 type DefaultUserService struct {
-	repo domain.UserRepository
+	repo ports.UserRepository
 }
 
 func (s DefaultUserService) GetAllUsers(r *http.Request) (domain.Users, int64, pagination.DataDBFilter, *errs.AppError) {
@@ -70,7 +71,7 @@ func (s DefaultUserService) GetAllUserAdmins(r *http.Request) (domain.Users, int
 }
 
 func (s DefaultUserService) FindUserById(id string) (*domain.User, *errs.AppError) {
-	user, err := s.repo.FindById(id)
+	user, err := s.repo.FindByUuid(id)
 	if err != nil {
 		if err.Code != http.StatusNotFound {
 			return nil, errs.NewUnexpectedError("unexpected database error")
@@ -95,6 +96,6 @@ func (s DefaultUserService) DeleteUser(id string) (bool, *errs.AppError) {
 	return true, nil
 }
 
-func NewUserService(repository domain.UserRepository) DefaultUserService {
+func NewUserService(repository ports.UserRepository) DefaultUserService {
 	return DefaultUserService{repo: repository}
 }

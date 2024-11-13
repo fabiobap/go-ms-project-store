@@ -7,6 +7,7 @@ import (
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/core/domain"
 	"github.com/go-ms-project-store/internal/core/enums"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 )
@@ -14,12 +15,13 @@ import (
 type AuthService interface {
 	Login(dto.NewLoginRequest) (*dto.TokenResponse, *errs.AppError)
 	Logout(uint64) *errs.AppError
+	Me(uint64) (*domain.User, *errs.AppError)
 	// Register(dto.RegisterRequest) (*domain.Auth, *errs.AppError)
 	// Me(dto.RegisterRequest) (*domain.Auth, *errs.AppError)
 }
 
 type DefaultAuthService struct {
-	repo domain.AuthRepository
+	repo ports.AuthRepository
 }
 
 func (s DefaultAuthService) Login(req dto.NewLoginRequest) (*dto.TokenResponse, *errs.AppError) {
@@ -82,6 +84,15 @@ func (s DefaultAuthService) Logout(user_id uint64) *errs.AppError {
 	return nil
 }
 
-func NewAuthService(repository domain.AuthRepository) DefaultAuthService {
+func (s DefaultAuthService) Me(user_id uint64) (*domain.User, *errs.AppError) {
+	user, err := s.repo.UserRepo().FindById(user_id)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
+func NewAuthService(repository ports.AuthRepository) DefaultAuthService {
 	return DefaultAuthService{repo: repository}
 }

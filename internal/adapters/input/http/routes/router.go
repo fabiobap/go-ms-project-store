@@ -38,7 +38,7 @@ func Routes() *chi.Mux {
 			mux.Group(func(mux chi.Router) {
 				mux.Use(authMiddleware.Middleware)
 				mux.Post("/logout", ah.Logout)
-				// mux.Get("/me", ah.Me)  // When you implement this
+				mux.Get("/me", ah.Me)
 			})
 		})
 		mux.Route("/admin", func(mux chi.Router) {

@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
-	"github.com/go-ms-project-store/internal/pkg/errs"
 )
 
 type Token struct {
@@ -23,15 +22,6 @@ type Token struct {
 type AuthUser struct {
 	Email    string
 	Password string
-}
-
-type AuthRepository interface {
-	CreateAccessToken(Token) (*Token, *errs.AppError)
-	CreateRefreshToken(Token) (*Token, *errs.AppError)
-	ValidateToken(string) (uint64, *errs.AppError)
-	Login(AuthUser) (*User, *errs.AppError)
-	Logout(uint64) *errs.AppError
-	// Register(User) (*User, *errs.AppError)
 }
 
 func NewToken(dto dto.NewTokenDTO) Token {

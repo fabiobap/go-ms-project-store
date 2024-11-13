@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/core/domain"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/logger"
 	"github.com/go-ms-project-store/internal/pkg/pagination"
@@ -20,7 +21,7 @@ type ProductService interface {
 }
 
 type DefaultProductService struct {
-	repo domain.ProductRepository
+	repo ports.ProductRepository
 }
 
 func (s DefaultProductService) GetAllProducts(r *http.Request) (domain.Products, int64, pagination.DataDBFilter, *errs.AppError) {
@@ -104,6 +105,6 @@ func (s DefaultProductService) DeleteProduct(id int) (bool, *errs.AppError) {
 	return true, nil
 }
 
-func NewProductService(repository domain.ProductRepository) DefaultProductService {
+func NewProductService(repository ports.ProductRepository) DefaultProductService {
 	return DefaultProductService{repo: repository}
 }

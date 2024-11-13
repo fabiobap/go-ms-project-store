@@ -4,9 +4,7 @@ import (
 	"time"
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
-	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
-	"github.com/go-ms-project-store/internal/pkg/pagination"
 	"github.com/google/uuid"
 )
 
@@ -25,14 +23,6 @@ type Product struct {
 }
 
 type Products []Product
-
-type ProductRepository interface {
-	Create(Product) (*Product, *errs.AppError)
-	Delete(id int) *errs.AppError
-	FindAll(filter pagination.DataDBFilter) (Products, int64, *errs.AppError)
-	FindById(id int) (*Product, *errs.AppError)
-	Update(Product) (*Product, *errs.AppError)
-}
 
 func NewProduct(req dto.NewProductRequest) Product {
 	return Product{

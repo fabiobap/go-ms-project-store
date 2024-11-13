@@ -4,9 +4,7 @@ import (
 	"time"
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
-	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
-	"github.com/go-ms-project-store/internal/pkg/pagination"
 	"github.com/google/uuid"
 )
 
@@ -25,14 +23,6 @@ type User struct {
 
 type Users []User
 
-type UserRepository interface {
-	Delete(id string) *errs.AppError
-	FindAll(filter pagination.DataDBFilter, roleName string) (Users, int64, *errs.AppError)
-	FindAllAdmins(filter pagination.DataDBFilter) (Users, int64, *errs.AppError)
-	FindAllCustomers(filter pagination.DataDBFilter) (Users, int64, *errs.AppError)
-	FindById(id string) (*User, *errs.AppError)
-}
-
 func (u User) ToUserDTO() dto.UserResponse {
 	return dto.UserResponse{
 		Id:              u.Id,
@@ -50,10 +40,19 @@ func (u User) ToUserDTO() dto.UserResponse {
 	}
 }
 
-func (c Users) ToDTO() []dto.UserResponse {
-	dtos := make([]dto.UserResponse, len(c))
-	for i, user := range c {
+func (u Users) ToDTO() []dto.UserResponse {
+	dtos := make([]dto.UserResponse, len(u))
+	for i, user := range u {
 		dtos[i] = user.ToUserDTO()
 	}
 	return dtos
+}
+
+func (u User) ToMeDTO() dto.UserMeResponse {
+	return dto.UserMeResponse{
+		ID:        u.UUID,
+		Name:      u.Name,
+		Email:     u.Email,
+		CreatedAt: helpers.DatetimeToString(u.CreatedAt),
+	}
 }

@@ -46,7 +46,16 @@ func (rdb UserRepositoryDB) Delete(id string) *errs.AppError {
 	return nil
 }
 
-func (rdb UserRepositoryDB) FindById(id string) (*domain.User, *errs.AppError) {
+func (rdb UserRepositoryDB) FindById(id uint64) (*domain.User, *errs.AppError) {
+	return rdb.findUserBy("u.id", id)
+}
+
+func (rdb UserRepositoryDB) FindByUuid(uuid string) (*domain.User, *errs.AppError) {
+	return rdb.findUserBy("u.uuid", uuid)
+}
+
+// Private helper method to handle both FindById and FindByUuid
+func (rdb UserRepositoryDB) findUserBy(field string, value interface{}) (*domain.User, *errs.AppError) {
 	query := `
     SELECT 
         u.id,
@@ -60,9 +69,9 @@ func (rdb UserRepositoryDB) FindById(id string) (*domain.User, *errs.AppError) {
         u.updated_at
     FROM users u
     JOIN roles r ON u.role_id = r.id
-    WHERE u.uuid = ?`
+    WHERE ` + field + ` = ?`
 
-	row := rdb.client.QueryRowx(query, id)
+	row := rdb.client.QueryRowx(query, value)
 	return rdb.scanUserWithRole(row)
 }
 

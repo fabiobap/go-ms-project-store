@@ -55,14 +55,21 @@ func (ch *AuthHandlers) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func (ch *AuthHandlers) Me(w http.ResponseWriter, r *http.Request) {
-// 	// paginatedResponse := pagination.NewPaginatedResponse(users.ToDTO(), filter.Page, filter.PerPage, int(totalRows), baseURL)
-// 	if err != nil {
-// 		helpers.WriteResponse(w, err.Code, err.AsMessage())
-// 	} else {
-// 		helpers.WriteResponse(w, http.StatusOK, paginatedResponse)
-// 	}
-// }
+func (ch *AuthHandlers) Me(w http.ResponseWriter, r *http.Request) {
+	//get context
+	user_id, ok := middlewares.GetUserID(r.Context())
+	if !ok {
+		helpers.WriteResponse(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	user, err := ch.Service.Me(user_id)
+	if err != nil {
+		helpers.WriteResponse(w, err.Code, err.AsMessage())
+	} else {
+		helpers.WriteResponse(w, http.StatusOK, user.ToMeDTO())
+	}
+}
 
 // func (ch *AuthHandlers) Refresh(w http.ResponseWriter, r *http.Request) {
 // 	// user, err := ch.Service.FindAuthById(id)

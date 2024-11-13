@@ -6,10 +6,15 @@ import (
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/core/domain"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/logger"
 	"github.com/go-ms-project-store/internal/pkg/pagination"
 )
+
+type DefaultCategoryService struct {
+	repo ports.CategoryRepository
+}
 
 type CategoryService interface {
 	GetAllCategories(*http.Request) (domain.Categories, int64, pagination.DataDBFilter, *errs.AppError)
@@ -17,10 +22,6 @@ type CategoryService interface {
 	FindCategoryById(int) (*domain.Category, *errs.AppError)
 	DeleteCategory(int) (bool, *errs.AppError)
 	UpdateCategory(int64, dto.UpdateCategoryRequest) (*domain.Category, *errs.AppError)
-}
-
-type DefaultCategoryService struct {
-	repo domain.CategoryRepository
 }
 
 func (s DefaultCategoryService) GetAllCategories(r *http.Request) (domain.Categories, int64, pagination.DataDBFilter, *errs.AppError) {
@@ -101,6 +102,6 @@ func (s DefaultCategoryService) DeleteCategory(id int) (bool, *errs.AppError) {
 	return true, nil
 }
 
-func NewCategoryService(repository domain.CategoryRepository) DefaultCategoryService {
+func NewCategoryService(repository ports.CategoryRepository) DefaultCategoryService {
 	return DefaultCategoryService{repo: repository}
 }
