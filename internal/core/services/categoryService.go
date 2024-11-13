@@ -16,14 +16,6 @@ type DefaultCategoryService struct {
 	repo ports.CategoryRepository
 }
 
-type CategoryService interface {
-	GetAllCategories(*http.Request) (domain.Categories, int64, pagination.DataDBFilter, *errs.AppError)
-	CreateCategory(dto.NewCategoryRequest) (*domain.Category, *errs.AppError)
-	FindCategoryById(int) (*domain.Category, *errs.AppError)
-	DeleteCategory(int) (bool, *errs.AppError)
-	UpdateCategory(int64, dto.UpdateCategoryRequest) (*domain.Category, *errs.AppError)
-}
-
 func (s DefaultCategoryService) GetAllCategories(r *http.Request) (domain.Categories, int64, pagination.DataDBFilter, *errs.AppError) {
 	allowedOrderBy := map[string]bool{
 		"id": true, "name": true, "slug": true, "created_at": true, "updated_at": true,

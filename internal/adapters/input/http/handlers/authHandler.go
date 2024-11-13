@@ -6,12 +6,12 @@ import (
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
 	"github.com/go-ms-project-store/internal/adapters/input/http/middlewares"
-	"github.com/go-ms-project-store/internal/core/services"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 )
 
 type AuthHandlers struct {
-	Service services.AuthService
+	Service ports.AuthService
 }
 
 func (ah *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
@@ -89,7 +89,7 @@ func (ch *AuthHandlers) Me(w http.ResponseWriter, r *http.Request) {
 // 	}
 // }
 
-func NewAuthHandlers(service services.AuthService) *AuthHandlers {
+func NewAuthHandlers(service ports.AuthService) *AuthHandlers {
 	return &AuthHandlers{
 		Service: service,
 	}

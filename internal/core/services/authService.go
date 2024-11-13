@@ -12,14 +12,6 @@ import (
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 )
 
-type AuthService interface {
-	Login(dto.NewLoginRequest) (*dto.TokenResponse, *errs.AppError)
-	Logout(uint64) *errs.AppError
-	Me(uint64) (*domain.User, *errs.AppError)
-	// Register(dto.RegisterRequest) (*domain.Auth, *errs.AppError)
-	// Me(dto.RegisterRequest) (*domain.Auth, *errs.AppError)
-}
-
 type DefaultAuthService struct {
 	repo ports.AuthRepository
 }

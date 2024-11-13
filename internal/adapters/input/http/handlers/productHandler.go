@@ -7,13 +7,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
-	"github.com/go-ms-project-store/internal/core/services"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 	"github.com/go-ms-project-store/internal/pkg/pagination"
 )
 
 type ProductHandlers struct {
-	Service services.ProductService
+	Service ports.ProductService
 }
 
 func (ch *ProductHandlers) DeleteProduct(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +101,7 @@ func (ch *ProductHandlers) UpdateProduct(w http.ResponseWriter, r *http.Request)
 	}
 }
 
-func NewProductHandlers(service services.ProductService) *ProductHandlers {
+func NewProductHandlers(service ports.ProductService) *ProductHandlers {
 	return &ProductHandlers{
 		Service: service,
 	}

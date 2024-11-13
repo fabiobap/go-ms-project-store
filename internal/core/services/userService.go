@@ -10,14 +10,6 @@ import (
 	"github.com/go-ms-project-store/internal/pkg/pagination"
 )
 
-type UserService interface {
-	GetAllUserCustomers(*http.Request) (domain.Users, int64, pagination.DataDBFilter, *errs.AppError)
-	GetAllUserAdmins(*http.Request) (domain.Users, int64, pagination.DataDBFilter, *errs.AppError)
-	// GetAllUsers(*http.Request) (domain.Users, int64, pagination.DataDBFilter, *errs.AppError)
-	FindUserById(string) (*domain.User, *errs.AppError)
-	DeleteUser(string) (bool, *errs.AppError)
-}
-
 type DefaultUserService struct {
 	repo ports.UserRepository
 }

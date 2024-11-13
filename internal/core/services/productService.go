@@ -12,14 +12,6 @@ import (
 	"github.com/go-ms-project-store/internal/pkg/pagination"
 )
 
-type ProductService interface {
-	GetAllProducts(*http.Request) (domain.Products, int64, pagination.DataDBFilter, *errs.AppError)
-	CreateProduct(dto.NewProductRequest) (*domain.Product, *errs.AppError)
-	FindProductById(int) (*domain.Product, *errs.AppError)
-	DeleteProduct(int) (bool, *errs.AppError)
-	UpdateProduct(int64, dto.UpdateProductRequest) (*domain.Product, *errs.AppError)
-}
-
 type DefaultProductService struct {
 	repo ports.ProductRepository
 }

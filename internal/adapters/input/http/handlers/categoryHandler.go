@@ -7,13 +7,13 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
-	"github.com/go-ms-project-store/internal/core/services"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 	"github.com/go-ms-project-store/internal/pkg/pagination"
 )
 
 type CategoryHandlers struct {
-	Service services.CategoryService
+	Service ports.CategoryService
 }
 
 func (ch *CategoryHandlers) DeleteCategory(w http.ResponseWriter, r *http.Request) {
@@ -101,7 +101,7 @@ func (ch *CategoryHandlers) UpdateCategory(w http.ResponseWriter, r *http.Reques
 	}
 }
 
-func NewCategoryHandlers(service services.CategoryService) *CategoryHandlers {
+func NewCategoryHandlers(service ports.CategoryService) *CategoryHandlers {
 	return &CategoryHandlers{
 		Service: service,
 	}

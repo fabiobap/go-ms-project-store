@@ -4,13 +4,13 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-ms-project-store/internal/core/services"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 	"github.com/go-ms-project-store/internal/pkg/pagination"
 )
 
 type UserHandlers struct {
-	Service services.UserService
+	Service ports.UserService
 }
 
 func (ch *UserHandlers) DeleteUser(w http.ResponseWriter, r *http.Request) {
@@ -61,7 +61,7 @@ func (ch *UserHandlers) GetUser(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewUserHandlers(service services.UserService) *UserHandlers {
+func NewUserHandlers(service ports.UserService) *UserHandlers {
 	return &UserHandlers{
 		Service: service,
 	}
