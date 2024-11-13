@@ -85,6 +85,17 @@ func (s DefaultAuthService) Me(user_id uint64) (*domain.User, *errs.AppError) {
 	return user, nil
 }
 
+func (s DefaultAuthService) Register(dto dto.NewUserRegisterRequest) (*domain.User, *errs.AppError) {
+	newUser := domain.NewUserRegister(dto)
+
+	user, err := s.repo.Register(newUser)
+	if err != nil {
+		return nil, err
+	}
+
+	return user, nil
+}
+
 func NewAuthService(repository ports.AuthRepository) DefaultAuthService {
 	return DefaultAuthService{repo: repository}
 }

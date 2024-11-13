@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/go-ms-project-store/internal/adapters/input/http/dto"
+	"github.com/google/uuid"
 )
 
 type Token struct {
@@ -24,6 +25,16 @@ type AuthUser struct {
 	Password string
 }
 
+type UserRegister struct {
+	Email     string
+	Name      string
+	Password  string
+	RoleId    uint64
+	UUID      uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
 func NewToken(dto dto.NewTokenDTO) Token {
 	return Token{
 		UserID:    dto.UserID,
@@ -39,6 +50,17 @@ func NewLogin(dto dto.NewLoginRequest) AuthUser {
 	return AuthUser{
 		Email:    dto.Email,
 		Password: dto.Password,
+	}
+}
+
+func NewUserRegister(dto dto.NewUserRegisterRequest) UserRegister {
+	return UserRegister{
+		Email:     dto.Email,
+		Password:  dto.Password,
+		Name:      dto.Name,
+		UUID:      uuid.New(),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
 	}
 }
 

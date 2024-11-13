@@ -19,6 +19,7 @@ import (
 type AuthRepositoryDB struct {
 	client   *sqlx.DB
 	userRepo ports.UserRepository
+	roleRepo ports.RoleRepository
 }
 
 func (rdb AuthRepositoryDB) createToken(tokenType string, au domain.Token) (*domain.Token, *errs.AppError) {
@@ -98,6 +99,66 @@ func (rdb AuthRepositoryDB) Login(au domain.AuthUser) (*domain.User, *errs.AppEr
 	return &user, nil
 }
 
+func (rdb AuthRepositoryDB) Register(au domain.UserRegister) (*domain.User, *errs.AppError) {
+
+	// Check if user already exists
+	query := `SELECT id, email, password from users where email = ?`
+	// Execute query
+	var user domain.User
+
+	err := rdb.client.Get(&user, query, au.Email)
+	if err != nil {
+		if err != sql.ErrNoRows {
+			logger.Error("Error while querying users table " + err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
+	} else {
+		logger.Error("User already exists")
+		return nil, errs.NewUnexpectedError("User already exists")
+	}
+
+	//find role id by name
+	role, errRole := rdb.roleRepo.FindByName(string(enums.CustomerRole))
+	au.RoleId = uint64(role.Id)
+	if errRole != nil {
+		logger.Error("Error while finding role " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	// Prepare query
+	query = `INSERT INTO users (name, email, password, role_id, uuid) VALUES (?, ?, ?, ?, ?)`
+	// Execute query
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(au.Password), 12)
+	if err != nil {
+		logger.Error("Error while hashing password " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	result, err := rdb.client.Exec(query, au.Name, au.Email, string(hashedPassword), au.RoleId, au.UUID)
+	if err != nil {
+		logger.Error("Error while creating new user " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	// Get the last inserted ID
+	id, err := result.LastInsertId()
+	if err != nil {
+		logger.Error("Error while getting last insert id " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	newUser := domain.User{
+		Id:        int64(id),
+		Name:      au.Name,
+		Email:     au.Email,
+		Password:  string(hashedPassword),
+		UUID:      au.UUID,
+		CreatedAt: au.CreatedAt,
+	}
+
+	return &newUser, nil
+}
+
 func (rdb AuthRepositoryDB) Logout(id uint64) *errs.AppError {
 	// Prepare query
 	query := `DELETE FROM personal_access_tokens WHERE tokenable_id = ?`
@@ -110,6 +171,10 @@ func (rdb AuthRepositoryDB) Logout(id uint64) *errs.AppError {
 	}
 
 	return nil
+}
+
+func (rdb AuthRepositoryDB) RoleRepo() ports.RoleRepository {
+	return rdb.roleRepo
 }
 
 func (rdb AuthRepositoryDB) UserRepo() ports.UserRepository {
@@ -166,5 +231,6 @@ func NewAuthRepositoryDB(dbClient *sqlx.DB) AuthRepositoryDB {
 	return AuthRepositoryDB{
 		client:   dbClient,
 		userRepo: NewUserRepositoryDB(dbClient),
+		roleRepo: NewRoleRepositoryDB(dbClient),
 	}
 }

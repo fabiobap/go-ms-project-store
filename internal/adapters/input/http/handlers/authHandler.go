@@ -80,14 +80,27 @@ func (ch *AuthHandlers) Me(w http.ResponseWriter, r *http.Request) {
 // 	}
 // }
 
-// func (ch *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
-// 	// user, err := ch.Service.FindAuthById(id)
-// 	if err != nil {
-// 		helpers.WriteResponse(w, err.Code, err.AsMessage())
-// 	} else {
-// 		helpers.WriteResponse(w, http.StatusOK, user.ToAuthDTO())
-// 	}
-// }
+func (ah *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
+	var nUserRequest dto.NewUserRegisterRequest
+
+	err := json.NewDecoder(r.Body).Decode(&nUserRequest)
+	if err != nil {
+		helpers.WriteResponse(w, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	if err := dto.ValidateUserRegister(&nUserRequest); err != nil {
+		helpers.WriteResponse(w, http.StatusUnprocessableEntity, err)
+		return
+	}
+
+	user, appErr := ah.Service.Register(nUserRequest)
+	if appErr != nil {
+		helpers.WriteResponse(w, appErr.Code, appErr.AsMessage())
+	} else {
+		helpers.WriteResponse(w, http.StatusOK, user.ToMeDTO())
+	}
+}
 
 func NewAuthHandlers(service ports.AuthService) *AuthHandlers {
 	return &AuthHandlers{

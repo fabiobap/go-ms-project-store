@@ -13,7 +13,8 @@ type AuthRepository interface {
 	Login(domain.AuthUser) (*domain.User, *errs.AppError)
 	Logout(uint64) *errs.AppError
 	UserRepo() UserRepository
-	// Register(User) (*User, *errs.AppError)
+	RoleRepo() RoleRepository
+	Register(domain.UserRegister) (*domain.User, *errs.AppError)
 }
 
 type CategoryRepository interface {
@@ -30,6 +31,10 @@ type ProductRepository interface {
 	FindAll(filter pagination.DataDBFilter) (domain.Products, int64, *errs.AppError)
 	FindById(id int) (*domain.Product, *errs.AppError)
 	Update(domain.Product) (*domain.Product, *errs.AppError)
+}
+
+type RoleRepository interface {
+	FindByName(name string) (*domain.Role, *errs.AppError)
 }
 
 type UserRepository interface {
