@@ -32,6 +32,19 @@ func (rdb AuthRepositoryDB) createToken(tokenType string, au domain.Token) (*dom
 
 	hashedToken := helpers.HashToken(genToken)
 
+	// Convert abilities slice to JSON
+	var abilitiesJSON []byte
+	if len(au.Abilities) == 0 {
+		abilitiesJSON = []byte("[]")
+	} else {
+		var err error
+		abilitiesJSON, err = json.Marshal(au.Abilities)
+		if err != nil {
+			logger.Error("Error while converting abilities to JSON " + err.Error())
+			return nil, errs.NewUnexpectedError("unexpected error processing token data")
+		}
+	}
+
 	query := `INSERT INTO personal_access_tokens 
     (tokenable_id, tokenable_type, name, token, abilities, expires_at, created_at, updated_at) 
     VALUES 
@@ -43,7 +56,7 @@ func (rdb AuthRepositoryDB) createToken(tokenType string, au domain.Token) (*dom
 		"App\\Models\\User",
 		tokenType,
 		hashedToken,
-		au.Abilities,
+		string(abilitiesJSON),
 		au.ExpiresAt,
 		au.CreatedAt,
 		au.UpdatedAt)
@@ -74,11 +87,19 @@ func (rdb AuthRepositoryDB) CreateRefreshToken(au domain.Token) (*domain.Token, 
 	return rdb.createToken(string(enums.RefreshToken), au)
 }
 func (rdb AuthRepositoryDB) GetTokenAbilities(fullToken string) ([]string, *errs.AppError) {
+	_, tokenString, err := helpers.ParseToken(fullToken)
+	if err != nil {
+		logger.Error("Error while parsing token " + err.Error())
+		return nil, errs.NewUnauthorizedError("Invalid Token")
+	}
+
+	hashedToken := helpers.HashToken(tokenString)
+
 	// Prepare query
 	query := `SELECT abilities from personal_access_tokens where token = ?`
 
 	var abilitiesJSON string
-	err := rdb.client.Get(&abilitiesJSON, query, fullToken)
+	err = rdb.client.Get(&abilitiesJSON, query, hashedToken)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			logger.Error("No token found with token: " + fullToken)

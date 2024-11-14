@@ -27,15 +27,19 @@ func (s DefaultAuthService) Login(req dto.NewLoginRequest) (*dto.TokenResponse, 
 		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
+	atAbility := []string{string(enums.AccessTokenAbility)}
 	atDto := dto.NewTokenDTO{
 		UserID:    uint64(user.Id),
 		Name:      string(enums.AccessToken),
+		Abilities: atAbility,
 		ExpiresAt: helpers.GetAccessTokenExpiry(),
 	}
 
+	rtAbility := []string{string(enums.RefreshTokenAbility)}
 	rtDto := dto.NewTokenDTO{
 		UserID:    uint64(user.Id),
 		Name:      string(enums.RefreshToken),
+		Abilities: rtAbility,
 		ExpiresAt: helpers.GetRefreshTokenExpiry(),
 	}
 
@@ -92,10 +96,12 @@ func (s DefaultAuthService) RefreshToken(user_id uint64) (*dto.TokenResponse, *e
 		return nil, err
 	}
 
+	atAbility := []string{string(enums.AccessTokenAbility)}
 	atDto := dto.NewTokenDTO{
 		UserID:    uint64(user_id),
 		Name:      string(enums.AccessToken),
 		ExpiresAt: helpers.GetAccessTokenExpiry(),
+		Abilities: atAbility,
 	}
 
 	acToken := domain.NewToken(atDto)

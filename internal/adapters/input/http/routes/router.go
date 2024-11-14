@@ -4,6 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-ms-project-store/internal/adapters/input/http/handlers"
 	"github.com/go-ms-project-store/internal/adapters/input/http/middlewares"
+	"github.com/go-ms-project-store/internal/core/enums"
 	"github.com/go-ms-project-store/internal/core/repositories"
 	"github.com/go-ms-project-store/internal/core/services"
 	"github.com/go-ms-project-store/internal/pkg/db"
@@ -18,6 +19,7 @@ func Routes() *chi.Mux {
 
 	mux.Use(middlewares.StoreRoutePattern)
 	authMiddleware := middlewares.NewAuthMiddleware(authRepositoryDB)
+	abilityMiddleware := middlewares.NewAbilityMiddleware(authRepositoryDB)
 
 	categoryRepositoryDB := repositories.NewCategoryRepositoryDB(dbClient)
 	productRepositoryDB := repositories.NewProductRepositoryDB(dbClient)
@@ -36,13 +38,14 @@ func Routes() *chi.Mux {
 			mux.Post("/register", ah.Register)
 			mux.Group(func(mux chi.Router) {
 				mux.Use(authMiddleware.Auth)
-				mux.Post("/refresh-token", ah.Refresh)
+				mux.With(abilityMiddleware.RequireAbilities(string(enums.RefreshTokenAbility))).Post("/refresh-token", ah.Refresh)
 				mux.Post("/logout", ah.Logout)
 				mux.Get("/me", ah.Me)
 			})
 		})
 		mux.Route("/admin", func(mux chi.Router) {
 			mux.Use(authMiddleware.Auth)
+			mux.Use(abilityMiddleware.RequireAbilities(string(enums.AccessTokenAbility)))
 			mux.Route("/categories", func(mux chi.Router) {
 				mux.Get("/", ch.GetAllCategories)
 				mux.Get("/{id}", ch.GetCategory)

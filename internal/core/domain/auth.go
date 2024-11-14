@@ -39,7 +39,7 @@ func NewToken(dto dto.NewTokenDTO) Token {
 	return Token{
 		UserID:    dto.UserID,
 		Name:      dto.Name,
-		Abilities: "",
+		Abilities: dto.Abilities,
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		ExpiresAt: dto.ExpiresAt,
