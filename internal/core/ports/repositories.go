@@ -15,6 +15,7 @@ type AuthRepository interface {
 	UserRepo() UserRepository
 	RoleRepo() RoleRepository
 	Register(domain.UserRegister) (*domain.User, *errs.AppError)
+	RevokeAccessToken(uint64) *errs.AppError
 }
 
 type CategoryRepository interface {

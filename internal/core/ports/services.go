@@ -13,6 +13,7 @@ type AuthService interface {
 	Login(dto.NewLoginRequest) (*dto.TokenResponse, *errs.AppError)
 	Logout(uint64) *errs.AppError
 	Me(uint64) (*domain.User, *errs.AppError)
+	RefreshToken(uint64) (*dto.TokenResponse, *errs.AppError)
 	Register(dto.NewUserRegisterRequest) (*domain.User, *errs.AppError)
 }
 

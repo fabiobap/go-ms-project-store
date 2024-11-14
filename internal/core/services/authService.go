@@ -85,6 +85,37 @@ func (s DefaultAuthService) Me(user_id uint64) (*domain.User, *errs.AppError) {
 	return user, nil
 }
 
+func (s DefaultAuthService) RefreshToken(user_id uint64) (*dto.TokenResponse, *errs.AppError) {
+
+	err := s.repo.RevokeAccessToken(user_id)
+	if err != nil {
+		return nil, err
+	}
+
+	atDto := dto.NewTokenDTO{
+		UserID:    uint64(user_id),
+		Name:      string(enums.AccessToken),
+		ExpiresAt: helpers.GetAccessTokenExpiry(),
+	}
+
+	acToken := domain.NewToken(atDto)
+	ac, err := s.repo.CreateAccessToken(acToken)
+	if err != nil {
+		if err.Code == http.StatusUnprocessableEntity {
+			return nil, err
+		}
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	res := dto.TokenResponse{
+		AccessToken: fmt.Sprintf("%d|%s", ac.ID, ac.Token),
+		ExpiresIn:   60,
+		TokenType:   "Bearer",
+	}
+
+	return &res, nil
+}
+
 func (s DefaultAuthService) Register(dto dto.NewUserRegisterRequest) (*domain.User, *errs.AppError) {
 	newUser := domain.NewUserRegister(dto)
 

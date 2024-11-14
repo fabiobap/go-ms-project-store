@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"time"
 
@@ -71,6 +72,29 @@ func (rdb AuthRepositoryDB) CreateAccessToken(au domain.Token) (*domain.Token, *
 
 func (rdb AuthRepositoryDB) CreateRefreshToken(au domain.Token) (*domain.Token, *errs.AppError) {
 	return rdb.createToken(string(enums.RefreshToken), au)
+}
+func (rdb AuthRepositoryDB) GetTokenAbilities(fullToken string) ([]string, *errs.AppError) {
+	// Prepare query
+	query := `SELECT abilities from personal_access_tokens where token = ?`
+
+	var abilitiesJSON string
+	err := rdb.client.Get(&abilitiesJSON, query, fullToken)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			logger.Error("No token found with token: " + fullToken)
+			return nil, errs.NewUnauthorizedError("Invalid token")
+		}
+		logger.Error("Error while querying personal_access_tokens table " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	var abilities []string
+	if err := json.Unmarshal([]byte(abilitiesJSON), &abilities); err != nil {
+		logger.Error("Error parsing abilities JSON: " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected error")
+	}
+
+	return abilities, nil
 }
 
 func (rdb AuthRepositoryDB) Login(au domain.AuthUser) (*domain.User, *errs.AppError) {
@@ -171,6 +195,37 @@ func (rdb AuthRepositoryDB) Logout(id uint64) *errs.AppError {
 	}
 
 	return nil
+}
+
+func (rdb AuthRepositoryDB) revokeToken(user_id uint64, tokenType enums.TokenName) *errs.AppError {
+	query := `DELETE FROM personal_access_tokens 
+              WHERE tokenable_id = ? AND name = ?`
+
+	result, err := rdb.client.Exec(query, user_id, string(tokenType))
+	if err != nil {
+		logger.Error("Error while revoking " + string(tokenType) + " token " + err.Error())
+		return errs.NewUnexpectedError("unexpected database error")
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		logger.Error("Error while getting rows affected " + err.Error())
+		return errs.NewUnexpectedError("unexpected database error")
+	}
+
+	if rowsAffected == 0 {
+		return errs.NewNotFoundError("no " + string(tokenType) + " token found for the user")
+	}
+
+	return nil
+}
+
+func (rdb AuthRepositoryDB) RevokeAccessToken(user_id uint64) *errs.AppError {
+	return rdb.revokeToken(user_id, enums.AccessToken)
+}
+
+func (rdb AuthRepositoryDB) RevokeRefreshToken(user_id uint64) *errs.AppError {
+	return rdb.revokeToken(user_id, enums.RefreshToken)
 }
 
 func (rdb AuthRepositoryDB) RoleRepo() ports.RoleRepository {

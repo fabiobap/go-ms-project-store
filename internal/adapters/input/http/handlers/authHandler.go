@@ -71,14 +71,21 @@ func (ch *AuthHandlers) Me(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// func (ch *AuthHandlers) Refresh(w http.ResponseWriter, r *http.Request) {
-// 	// user, err := ch.Service.FindAuthById(id)
-// 	if err != nil {
-// 		helpers.WriteResponse(w, err.Code, err.AsMessage())
-// 	} else {
-// 		helpers.WriteResponse(w, http.StatusOK, user.ToAuthDTO())
-// 	}
-// }
+func (ch *AuthHandlers) Refresh(w http.ResponseWriter, r *http.Request) {
+	//get context
+	user_id, ok := middlewares.GetUserID(r.Context())
+	if !ok {
+		helpers.WriteResponse(w, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	res, err := ch.Service.RefreshToken(uint64(user_id))
+	if err != nil {
+		helpers.WriteResponse(w, err.Code, err.AsMessage())
+	} else {
+		helpers.WriteResponse(w, http.StatusOK, res)
+	}
+}
 
 func (ah *AuthHandlers) Register(w http.ResponseWriter, r *http.Request) {
 	var nUserRequest dto.NewUserRegisterRequest
