@@ -12,6 +12,7 @@ import (
 const USER_ID_CONTEXT_KEY = "user_id"
 
 type TokenValidator interface {
+	GetTokenAbilities(fullToken string) ([]string, *errs.AppError)
 	ValidateToken(token string) (uint64, *errs.AppError)
 }
 
@@ -25,7 +26,7 @@ func NewAuthMiddleware(validator TokenValidator) *AuthMiddleware {
 	}
 }
 
-func (am *AuthMiddleware) Middleware(next http.Handler) http.Handler {
+func (am *AuthMiddleware) Auth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		userID, err := am.validateBearerToken(r)
 		if err != nil {

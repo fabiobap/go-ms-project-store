@@ -12,7 +12,7 @@ type Token struct {
 	UserID      uint64    `db:"tokenable_id"`
 	Name        string    `db:"name"`
 	Token       string    `db:"token"`
-	Abilities   string    `db:"abilities"`
+	Abilities   []string  `db:"abilities"`
 	CreatedAt   time.Time `db:"created_at"`
 	UpdatedAt   time.Time `db:"updated_at"`
 	ExpiresAt   time.Time `db:"expires_at"`

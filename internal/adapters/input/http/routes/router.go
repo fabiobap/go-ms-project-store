@@ -36,13 +36,13 @@ func Routes() *chi.Mux {
 			mux.Post("/register", ah.Register)
 			// mux.Post("/refresh-token", ch.CreateCategory)
 			mux.Group(func(mux chi.Router) {
-				mux.Use(authMiddleware.Middleware)
+				mux.Use(authMiddleware.Auth)
 				mux.Post("/logout", ah.Logout)
 				mux.Get("/me", ah.Me)
 			})
 		})
 		mux.Route("/admin", func(mux chi.Router) {
-			mux.Use(authMiddleware.Middleware)
+			mux.Use(authMiddleware.Auth)
 			mux.Route("/categories", func(mux chi.Router) {
 				mux.Get("/", ch.GetAllCategories)
 				mux.Get("/{id}", ch.GetCategory)
