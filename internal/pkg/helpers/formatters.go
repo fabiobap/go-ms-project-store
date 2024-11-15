@@ -2,7 +2,6 @@ package helpers
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"strings"
 	"time"
@@ -20,7 +19,6 @@ func DBByteToString(v interface{}) string {
 }
 
 func NumberFormat(number interface{}, decimals int, decPoint, thousandsSep string) string {
-	log.Println(number)
 	var floatValue float64
 
 	switch v := number.(type) {
