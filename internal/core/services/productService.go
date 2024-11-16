@@ -84,6 +84,19 @@ func (s DefaultProductService) FindProductById(id int) (*domain.Product, *errs.A
 	return product, nil
 }
 
+func (s DefaultProductService) FindProductBySlug(slug string) (*domain.Product, *errs.AppError) {
+	product, err := s.repo.FindBySlug(slug)
+	if err != nil {
+		if err.Code != http.StatusNotFound {
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		} else {
+			return nil, err
+		}
+	}
+
+	return product, nil
+}
+
 func (s DefaultProductService) DeleteProduct(id int) (bool, *errs.AppError) {
 	err := s.repo.Delete(id)
 	if err != nil {

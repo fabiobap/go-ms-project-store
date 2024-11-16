@@ -17,3 +17,14 @@ type ProductResponse struct {
 	UpdatedAt   string           `json:"updated_at"`
 	Category    CategoryResponse `json:"category"`
 }
+
+type ProductPublicResponse struct {
+	ID          uuid.UUID              `json:"id"`
+	Name        string                 `json:"name"`
+	Slug        string                 `json:"slug"`
+	Description string                 `json:"description"`
+	Amount      string                 `json:"amount"`
+	Image       string                 `json:"image"`
+	CreatedAt   string                 `json:"created_at"`
+	Category    CategoryPublicResponse `json:"category"`
+}

@@ -31,6 +31,7 @@ type ProductRepository interface {
 	Delete(id int) *errs.AppError
 	FindAll(filter pagination.DataDBFilter) (domain.Products, int64, *errs.AppError)
 	FindById(id int) (*domain.Product, *errs.AppError)
+	FindBySlug(slug string) (*domain.Product, *errs.AppError)
 	Update(domain.Product) (*domain.Product, *errs.AppError)
 }
 

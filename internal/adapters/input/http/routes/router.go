@@ -32,6 +32,8 @@ func Routes() *chi.Mux {
 
 	mux.Route("/api/v1", func(mux chi.Router) {
 		mux.Get("/home", handlers.Home)
+		mux.Get("/products", ph.GetAllPublicProducts)
+		mux.Get("/products/{slug}", ph.GetPublicProduct)
 
 		mux.Route("/auth", func(mux chi.Router) {
 			mux.Post("/login", ah.Login)

@@ -220,11 +220,11 @@ func (rdb ProductRepositoryDB) FindAll(filter pagination.DataDBFilter) (domain.P
 }
 
 func (rdb ProductRepositoryDB) FindByName(name string) (*domain.Product, *errs.AppError) {
-	return rdb.findByField("name", name)
+	return rdb.findByField("p.name", name)
 }
 
 func (rdb ProductRepositoryDB) FindBySlug(slug string) (*domain.Product, *errs.AppError) {
-	return rdb.findByField("slug", slug)
+	return rdb.findByField("p.slug", slug)
 }
 
 func (rdb ProductRepositoryDB) Update(p domain.Product) (*domain.Product, *errs.AppError) {
@@ -301,33 +301,27 @@ func NewProductRepositoryDB(dbClient *sqlx.DB) ProductRepositoryDB {
 
 func (rdb ProductRepositoryDB) findByField(field, value string) (*domain.Product, *errs.AppError) {
 	query := `SELECT
-        id,
-        uuid,
-        name,
-        slug,
-        category_id, 
-        description, 
-        amount,
-        image,
-        created_at,
-        updated_at
-    FROM products
+       	p.id,
+        p.uuid,
+        p.name,
+        p.slug,
+        p.category_id, 
+        p.description, 
+        p.amount,
+        p.image,
+        p.created_at,
+        p.updated_at,
+        c.id,
+        c.name,
+        c.slug,
+        c.created_at,
+        c.updated_at
+    FROM products p 
+	LEFT JOIN categories c ON p.category_id = c.id
     WHERE ` + field + ` = ?`
 
-	var product domain.Product
-
-	err := rdb.client.Get(&product, query, value)
-
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errs.NewNotFoundError("Product not found")
-		} else {
-			logger.Error("Error while querying product table " + err.Error())
-			return nil, errs.NewUnexpectedError("unexpected database error")
-		}
-	}
-
-	return &product, nil
+	row := rdb.client.QueryRowx(query, value)
+	return rdb.scanProduct(row)
 }
 
 func (rdb ProductRepositoryDB) processProduct(product *domain.Product, category *domain.Category, uuidBytes []byte) (*domain.Product, *errs.AppError) {

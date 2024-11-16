@@ -65,10 +65,38 @@ func (p Product) ToProductDTO() dto.ProductResponse {
 	}
 }
 
+func (p Product) ToPublicProductDTO() dto.ProductPublicResponse {
+	amount := float64(p.Amount) / 100
+	return dto.ProductPublicResponse{
+		ID:          p.UUID,
+		Name:        p.Name,
+		Description: p.Description,
+		Amount:      helpers.NumberFormat(amount, 2, ".", ","),
+		Image:       p.Image,
+		Slug:        p.Slug,
+		CreatedAt:   helpers.DatetimeToString(p.CreatedAt),
+		Category: dto.CategoryPublicResponse{
+			Name: p.Category.Name,
+			Slug: p.Category.Slug,
+			CreatedAt: helpers.DatetimeToString(
+				p.Category.CreatedAt,
+			),
+		},
+	}
+}
+
 func (c Products) ToDTO() []dto.ProductResponse {
 	dtos := make([]dto.ProductResponse, len(c))
 	for i, product := range c {
 		dtos[i] = product.ToProductDTO()
+	}
+	return dtos
+}
+
+func (c Products) ToPublicDTO() []dto.ProductPublicResponse {
+	dtos := make([]dto.ProductPublicResponse, len(c))
+	for i, product := range c {
+		dtos[i] = product.ToPublicProductDTO()
 	}
 	return dtos
 }

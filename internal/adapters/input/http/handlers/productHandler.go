@@ -62,6 +62,19 @@ func (ch *ProductHandlers) GetAllProducts(w http.ResponseWriter, r *http.Request
 	}
 }
 
+func (ch *ProductHandlers) GetAllPublicProducts(w http.ResponseWriter, r *http.Request) {
+	products, totalRows, filter, err := ch.Service.GetAllProducts(r)
+
+	baseURL := helpers.GetFullRouteUrl(r)
+
+	paginatedResponse := pagination.NewPaginatedResponse(products.ToPublicDTO(), filter.Page, filter.PerPage, int(totalRows), baseURL)
+	if err != nil {
+		helpers.WriteResponse(w, err.Code, err.AsMessage())
+	} else {
+		helpers.WriteResponse(w, http.StatusOK, paginatedResponse)
+	}
+}
+
 func (ch *ProductHandlers) GetProduct(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.Atoi(chi.URLParam(r, "id"))
 
@@ -70,6 +83,17 @@ func (ch *ProductHandlers) GetProduct(w http.ResponseWriter, r *http.Request) {
 		helpers.WriteResponse(w, err.Code, err.AsMessage())
 	} else {
 		helpers.WriteResponse(w, http.StatusOK, product.ToProductDTO())
+	}
+}
+
+func (ch *ProductHandlers) GetPublicProduct(w http.ResponseWriter, r *http.Request) {
+	slug := chi.URLParam(r, "slug")
+
+	product, err := ch.Service.FindProductBySlug(slug)
+	if err != nil {
+		helpers.WriteResponse(w, err.Code, err.AsMessage())
+	} else {
+		helpers.WriteResponse(w, http.StatusOK, product.ToPublicProductDTO())
 	}
 }
 
