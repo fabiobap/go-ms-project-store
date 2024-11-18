@@ -44,6 +44,22 @@ func getValidationErrors(err error) *ValidationResponse {
 				message = fmt.Sprintf("The %s must be lowercase.", field)
 			case "email":
 				message = fmt.Sprintf("The %s must be a valid email address.", field)
+			case "len":
+				message = fmt.Sprintf("The %s must be exactly %s characters.", field, err.Param())
+			case "uuid4":
+				message = fmt.Sprintf("The %s must be a valid UUID v4.", field)
+			case "dive":
+				message = fmt.Sprintf("The %s contains invalid items.", field)
+			case "numeric":
+				message = fmt.Sprintf("The %s must contain only numbers.", field)
+			case "gt":
+				message = fmt.Sprintf("The %s must be greater than %s.", field, err.Param())
+			case "gte":
+				message = fmt.Sprintf("The %s must be greater than or equal to %s.", field, err.Param())
+			case "lt":
+				message = fmt.Sprintf("The %s must be less than %s.", field, err.Param())
+			case "lte":
+				message = fmt.Sprintf("The %s must be less than or equal to %s.", field, err.Param())
 			default:
 				message = fmt.Sprintf("The %s field is invalid.", field)
 			}
