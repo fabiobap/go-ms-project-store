@@ -77,7 +77,6 @@ func (ch *CategoryHandlers) UpdateCategory(w http.ResponseWriter, r *http.Reques
 	var categoryRequest dto.UpdateCategoryRequest
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
-		// Handle the error - the ID is not a valid integer
 		helpers.WriteResponse(w, http.StatusBadRequest, "Invalid ID format")
 		return
 	}

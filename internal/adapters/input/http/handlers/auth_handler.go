@@ -37,7 +37,6 @@ func (ah *AuthHandlers) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ch *AuthHandlers) Logout(w http.ResponseWriter, r *http.Request) {
-	//get context
 	user_id, ok := middlewares.GetUserID(r.Context())
 	if !ok {
 		helpers.WriteResponse(w, http.StatusUnauthorized, "Unauthorized")
@@ -56,7 +55,6 @@ func (ch *AuthHandlers) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ch *AuthHandlers) Me(w http.ResponseWriter, r *http.Request) {
-	//get context
 	user_id, ok := middlewares.GetUserID(r.Context())
 	if !ok {
 		helpers.WriteResponse(w, http.StatusUnauthorized, "Unauthorized")
@@ -72,7 +70,6 @@ func (ch *AuthHandlers) Me(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ch *AuthHandlers) Refresh(w http.ResponseWriter, r *http.Request) {
-	//get context
 	user_id, ok := middlewares.GetUserID(r.Context())
 	if !ok {
 		helpers.WriteResponse(w, http.StatusUnauthorized, "Unauthorized")

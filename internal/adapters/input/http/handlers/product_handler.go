@@ -101,7 +101,6 @@ func (ch *ProductHandlers) UpdateProduct(w http.ResponseWriter, r *http.Request)
 	var productRequest dto.UpdateProductRequest
 	id, err := strconv.ParseInt(chi.URLParam(r, "id"), 10, 64)
 	if err != nil {
-		// Handle the error - the ID is not a valid integer
 		helpers.WriteResponse(w, http.StatusBadRequest, "Invalid ID format")
 		return
 	}
