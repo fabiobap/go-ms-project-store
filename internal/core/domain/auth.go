@@ -63,11 +63,3 @@ func NewUserRegister(dto dto.NewUserRegisterRequest) UserRegister {
 		UpdatedAt: time.Now(),
 	}
 }
-
-// func (c Categories) ToDTO() []dto.CategoryResponse {
-// 	dtos := make([]dto.CategoryResponse, len(c))
-// 	for i, category := range c {
-// 		dtos[i] = category.ToCategoryDTO()
-// 	}
-// 	return dtos
-// }

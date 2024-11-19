@@ -95,7 +95,6 @@ func (rdb AuthRepositoryDB) GetTokenAbilities(fullToken string) ([]string, *errs
 
 	hashedToken := helpers.HashToken(tokenString)
 
-	// Prepare query
 	query := `SELECT abilities from personal_access_tokens where token = ?`
 
 	var abilitiesJSON string
@@ -119,9 +118,7 @@ func (rdb AuthRepositoryDB) GetTokenAbilities(fullToken string) ([]string, *errs
 }
 
 func (rdb AuthRepositoryDB) Login(au domain.AuthUser) (*domain.User, *errs.AppError) {
-	// Prepare query
 	query := `SELECT id, email, password from users where email = ?`
-	// Execute query
 	var user domain.User
 
 	err := rdb.client.Get(&user, query, au.Email)
@@ -145,10 +142,7 @@ func (rdb AuthRepositoryDB) Login(au domain.AuthUser) (*domain.User, *errs.AppEr
 }
 
 func (rdb AuthRepositoryDB) Register(au domain.UserRegister) (*domain.User, *errs.AppError) {
-
-	// Check if user already exists
 	query := `SELECT id, email, password from users where email = ?`
-	// Execute query
 	var user domain.User
 
 	err := rdb.client.Get(&user, query, au.Email)
@@ -162,7 +156,6 @@ func (rdb AuthRepositoryDB) Register(au domain.UserRegister) (*domain.User, *err
 		return nil, errs.NewUnexpectedError("User already exists")
 	}
 
-	//find role id by name
 	role, errRole := rdb.roleRepo.FindByName(string(enums.CustomerRole))
 	au.RoleId = uint64(role.Id)
 	if errRole != nil {
@@ -170,9 +163,8 @@ func (rdb AuthRepositoryDB) Register(au domain.UserRegister) (*domain.User, *err
 		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
-	// Prepare query
 	query = `INSERT INTO users (name, email, password, role_id, uuid) VALUES (?, ?, ?, ?, ?)`
-	// Execute query
+
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(au.Password), 12)
 	if err != nil {
 		logger.Error("Error while hashing password " + err.Error())
@@ -185,7 +177,6 @@ func (rdb AuthRepositoryDB) Register(au domain.UserRegister) (*domain.User, *err
 		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
-	// Get the last inserted ID
 	id, err := result.LastInsertId()
 	if err != nil {
 		logger.Error("Error while getting last insert id " + err.Error())
@@ -205,10 +196,8 @@ func (rdb AuthRepositoryDB) Register(au domain.UserRegister) (*domain.User, *err
 }
 
 func (rdb AuthRepositoryDB) Logout(id uint64) *errs.AppError {
-	// Prepare query
 	query := `DELETE FROM personal_access_tokens WHERE tokenable_id = ?`
 
-	// Execute query
 	_, err := rdb.client.Exec(query, id)
 	if err != nil {
 		logger.Error("Error while deleting tokens " + err.Error())
@@ -277,7 +266,7 @@ func (rdb AuthRepositoryDB) ValidateToken(fullToken string) (uint64, *errs.AppEr
 		last_used_at 
 	FROM personal_access_tokens 
 	WHERE id = ? AND token = ?`
-	// Execute query
+
 	err = rdb.client.QueryRow(query, tokenID, hashedToken).Scan(&userID, &expiresAt, &lastUsedAt)
 	if err != nil {
 		if err == sql.ErrNoRows {

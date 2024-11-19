@@ -57,7 +57,6 @@ func (rdb CategoryRepositoryDB) Create(c domain.Category) (*domain.Category, *er
 		break
 	}
 
-	// Prepare query
 	insertQuery := `INSERT INTO categories (name, slug, created_at, updated_at) VALUES (?, ?, ?, ?)`
 
 	res, sqlxErr := rdb.client.Exec(insertQuery, c.Name, finalSlug, c.CreatedAt, c.UpdatedAt)
@@ -101,7 +100,6 @@ func (rdb CategoryRepositoryDB) Delete(id int) *errs.AppError {
 }
 
 func (rdb CategoryRepositoryDB) FindById(id int) (*domain.Category, *errs.AppError) {
-	// Prepare query
 	query := `SELECT
 		id,
 		name,
@@ -173,8 +171,6 @@ func (rdb CategoryRepositoryDB) FindAll(filter pagination.DataDBFilter) (domain.
 }
 
 func (rdb CategoryRepositoryDB) FindByName(name string) (*domain.Category, *errs.AppError) {
-
-	// Prepare query
 	query := `SELECT
 		id,
 		name,
@@ -202,8 +198,6 @@ func (rdb CategoryRepositoryDB) FindByName(name string) (*domain.Category, *errs
 }
 
 func (rdb CategoryRepositoryDB) FindBySlug(slug string) (*domain.Category, *errs.AppError) {
-
-	// Prepare query
 	query := `SELECT
 		id,
 		name,
