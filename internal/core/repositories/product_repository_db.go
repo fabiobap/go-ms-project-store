@@ -64,7 +64,6 @@ func (rdb ProductRepositoryDB) Create(p domain.Product) (*domain.Product, *errs.
 		break
 	}
 
-	// Prepare query
 	insertQuery := `INSERT INTO products 
 		(name, 
 		slug, 
