@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/go-ms-project-store/internal/core/domain"
 	"github.com/go-ms-project-store/internal/pkg/db"
@@ -286,6 +287,50 @@ func (rdb ProductRepositoryDB) Update(p domain.Product) (*domain.Product, *errs.
 	updatedProduct.Category = *categoryExists
 
 	return updatedProduct, nil
+}
+
+func (rdb ProductRepositoryDB) WhereIn(uuids []string) ([]domain.Product, *errs.AppError) {
+	if len(uuids) == 0 {
+		return []domain.Product{}, nil
+	}
+
+	// Create the placeholder string for the IN clause
+	placeholders := make([]string, len(uuids))
+	args := make([]interface{}, len(uuids))
+	for i := range uuids {
+		placeholders[i] = "?"
+		args[i] = uuids[i]
+	}
+
+	query := fmt.Sprintf(`
+        SELECT id, amount, uuid
+        FROM products 
+        WHERE uuid IN (%s)`,
+		strings.Join(placeholders, ","))
+
+	rows, err := rdb.client.Queryx(query, args...)
+	if err != nil {
+		logger.Error("Error while querying products with UUIDs: " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+	defer rows.Close()
+
+	var products []domain.Product
+	for rows.Next() {
+		var product domain.Product
+		if err := rows.Scan(&product.Id, &product.Amount, &product.UUID); err != nil {
+			logger.Error("Error while scanning product: " + err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
+		products = append(products, product)
+	}
+
+	if err = rows.Err(); err != nil {
+		logger.Error("Error after iterating over product rows: " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	return products, nil
 }
 
 func NewProductRepositoryDB(dbClient *sqlx.DB) ProductRepositoryDB {

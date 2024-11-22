@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/go-ms-project-store/internal/core/domain"
+	"github.com/go-ms-project-store/internal/core/ports"
 	"github.com/go-ms-project-store/internal/pkg/db"
 	"github.com/go-ms-project-store/internal/pkg/errs"
 	"github.com/go-ms-project-store/internal/pkg/logger"
@@ -13,28 +14,73 @@ import (
 )
 
 type OrderRepositoryDB struct {
-	client   *sqlx.DB
-	verifier *db.FieldVerifier
+	client        *sqlx.DB
+	productRepo   ports.ProductRepository
+	orderItemRepo ports.OrderItemRepository
 }
 
 func (rdb OrderRepositoryDB) Create(o domain.Order) (*domain.Order, *errs.AppError) {
-	insertQuery := `INSERT INTO orders (uuid, external_id, status, amount, user_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?)`
-
-	res, sqlxErr := rdb.client.Exec(insertQuery, o.UUID, o.ExternalId, o.Status, o.Amount, o.UserId, o.CreatedAt, o.UpdatedAt)
-	if sqlxErr != nil {
-		logger.Error("Error while creating new order " + sqlxErr.Error())
+	// Start transaction
+	tx, err := rdb.client.Beginx()
+	if err != nil {
+		logger.Error("Error while starting transaction: " + err.Error())
 		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
-	id, sqlxErr := res.LastInsertId()
-	if sqlxErr != nil {
-		logger.Error("Error while getting last insert id for new order " + sqlxErr.Error())
+	// Defer transaction rollback in case of error
+	defer tx.Rollback()
+
+	// Insert order
+	insertOrderQuery := `INSERT INTO orders (uuid, external_id, status, amount, user_id, created_at, updated_at) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?)`
+
+	result, err := tx.Exec(insertOrderQuery,
+		o.UUID,
+		o.ExternalId,
+		o.Status,
+		o.Amount,
+		o.UserId,
+		o.CreatedAt,
+		o.UpdatedAt)
+	if err != nil {
+		logger.Error("Error while creating new order: " + err.Error())
 		return nil, errs.NewUnexpectedError("unexpected database error")
 	}
 
-	o.ID = uint64(id)
+	// Get the last inserted order ID
+	orderId, err := result.LastInsertId()
+	if err != nil {
+		logger.Error("Error while getting last insert id for new order: " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
 
-	return &o, nil
+	// Insert order items
+	insertOrderItemQuery := `INSERT INTO order_items (order_id, product_id, quantity, amount, created_at, updated_at) 
+                           VALUES (?, ?, ?, ?, ?, ?)`
+
+	for _, item := range o.OrderItems {
+		_, err = tx.Exec(insertOrderItemQuery,
+			orderId,
+			item.ProductId,
+			item.Quantity,
+			item.Amount,
+			item.CreatedAt,
+			item.UpdatedAt)
+
+		if err != nil {
+			logger.Error("Error while creating order item: " + err.Error())
+			return nil, errs.NewUnexpectedError("unexpected database error")
+		}
+	}
+
+	// Commit transaction
+	if err = tx.Commit(); err != nil {
+		logger.Error("Error while committing transaction: " + err.Error())
+		return nil, errs.NewUnexpectedError("unexpected database error")
+	}
+
+	// Fetch the complete order with items and product information
+	return rdb.FindById(uint64(orderId))
 }
 
 func (rdb OrderRepositoryDB) FindById(id uint64) (*domain.Order, *errs.AppError) {
@@ -187,12 +233,18 @@ func (rdb OrderRepositoryDB) FindById(id uint64) (*domain.Order, *errs.AppError)
 	return order, nil
 }
 
+func (rdb OrderRepositoryDB) ProductRepo() ports.ProductRepository {
+	return rdb.productRepo
+}
+
+func (rdb OrderRepositoryDB) OrderItemRepo() ports.OrderItemRepository {
+	return rdb.orderItemRepo
+}
+
 func NewOrderRepositoryDB(dbClient *sqlx.DB) OrderRepositoryDB {
 	return OrderRepositoryDB{
-		client: dbClient,
-		verifier: &db.FieldVerifier{
-			DB:        dbClient,
-			TableName: "orders",
-		},
+		client:        dbClient,
+		productRepo:   NewProductRepositoryDB(dbClient),
+		orderItemRepo: NewOrderItemRepositoryDB(dbClient),
 	}
 }

@@ -4,6 +4,10 @@ import (
 	"github.com/go-ms-project-store/internal/pkg/helpers"
 )
 
+type OrderValidator interface {
+	Validate() *helpers.ValidationResponse
+}
+
 type CardRequest struct {
 	Number   string `json:"number" validate:"required,min=13,max=16"`
 	ExpMonth string `json:"exp_month" validate:"required,len=2"`
@@ -24,4 +28,8 @@ type NewOrderRequest struct {
 
 func (ncr *NewOrderRequest) Validate() *helpers.ValidationResponse {
 	return helpers.ValidateRequests(ncr)
+}
+
+func ValidateOrder(order OrderValidator) *helpers.ValidationResponse {
+	return order.Validate()
 }

@@ -25,6 +25,10 @@ type CategoryService interface {
 	UpdateCategory(int64, dto.UpdateCategoryRequest) (*domain.Category, *errs.AppError)
 }
 
+type OrderService interface {
+	CreateOrder(dto.NewOrderRequest, uint64) (*domain.Order, *errs.AppError)
+}
+
 type ProductService interface {
 	GetAllProducts(*http.Request) (domain.Products, int64, pagination.DataDBFilter, *errs.AppError)
 	CreateProduct(dto.NewProductRequest) (*domain.Product, *errs.AppError)

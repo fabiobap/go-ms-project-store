@@ -22,11 +22,13 @@ func Routes() *chi.Mux {
 	abilityMiddleware := middlewares.NewAbilityMiddleware(authRepositoryDB)
 
 	categoryRepositoryDB := repositories.NewCategoryRepositoryDB(dbClient)
+	orderRepositoryDB := repositories.NewOrderRepositoryDB(dbClient)
 	productRepositoryDB := repositories.NewProductRepositoryDB(dbClient)
 	userRepositoryDB := repositories.NewUserRepositoryDB(dbClient)
 
 	ah := handlers.NewAuthHandlers(services.NewAuthService(authRepositoryDB))
 	ch := handlers.NewCategoryHandlers(services.NewCategoryService(categoryRepositoryDB))
+	oh := handlers.NewOrderHandlers(services.NewOrderService(orderRepositoryDB))
 	ph := handlers.NewProductHandlers(services.NewProductService(productRepositoryDB))
 	uh := handlers.NewUserHandlers(services.NewUserService(userRepositoryDB))
 
@@ -34,6 +36,7 @@ func Routes() *chi.Mux {
 		mux.Get("/home", handlers.Home)
 		mux.Get("/products", ph.GetAllPublicProducts)
 		mux.Get("/products/{slug}", ph.GetPublicProduct)
+		mux.With(authMiddleware.Auth, abilityMiddleware.RequireAbilities(string(enums.AccessTokenAbility))).Post("/payment/checkout", oh.CreateOrder)
 
 		mux.Route("/auth", func(mux chi.Router) {
 			mux.Post("/login", ah.Login)

@@ -20,30 +20,42 @@ type AuthRepository interface {
 
 type CategoryRepository interface {
 	Create(domain.Category) (*domain.Category, *errs.AppError)
-	Delete(id int) *errs.AppError
-	FindAll(filter pagination.DataDBFilter) (domain.Categories, int64, *errs.AppError)
-	FindById(id int) (*domain.Category, *errs.AppError)
+	Delete(int) *errs.AppError
+	FindAll(pagination.DataDBFilter) (domain.Categories, int64, *errs.AppError)
+	FindById(int) (*domain.Category, *errs.AppError)
 	Update(domain.Category) (*domain.Category, *errs.AppError)
+}
+
+type OrderRepository interface {
+	Create(domain.Order) (*domain.Order, *errs.AppError)
+	FindById(uint64) (*domain.Order, *errs.AppError)
+	ProductRepo() ProductRepository
+	OrderItemRepo() OrderItemRepository
+}
+
+type OrderItemRepository interface {
+	Create(domain.OrderItem) (*domain.OrderItem, *errs.AppError)
 }
 
 type ProductRepository interface {
 	Create(domain.Product) (*domain.Product, *errs.AppError)
-	Delete(id int) *errs.AppError
-	FindAll(filter pagination.DataDBFilter) (domain.Products, int64, *errs.AppError)
-	FindById(id int) (*domain.Product, *errs.AppError)
-	FindBySlug(slug string) (*domain.Product, *errs.AppError)
+	Delete(int) *errs.AppError
+	FindAll(pagination.DataDBFilter) (domain.Products, int64, *errs.AppError)
+	FindById(int) (*domain.Product, *errs.AppError)
+	FindBySlug(string) (*domain.Product, *errs.AppError)
 	Update(domain.Product) (*domain.Product, *errs.AppError)
+	WhereIn([]string) ([]domain.Product, *errs.AppError)
 }
 
 type RoleRepository interface {
-	FindByName(name string) (*domain.Role, *errs.AppError)
+	FindByName(string) (*domain.Role, *errs.AppError)
 }
 
 type UserRepository interface {
-	Delete(id string) *errs.AppError
-	FindAll(filter pagination.DataDBFilter, roleName string) (domain.Users, int64, *errs.AppError)
-	FindAllAdmins(filter pagination.DataDBFilter) (domain.Users, int64, *errs.AppError)
-	FindAllCustomers(filter pagination.DataDBFilter) (domain.Users, int64, *errs.AppError)
-	FindById(id uint64) (*domain.User, *errs.AppError)
-	FindByUuid(id string) (*domain.User, *errs.AppError)
+	Delete(string) *errs.AppError
+	FindAll(pagination.DataDBFilter, string) (domain.Users, int64, *errs.AppError)
+	FindAllAdmins(pagination.DataDBFilter) (domain.Users, int64, *errs.AppError)
+	FindAllCustomers(pagination.DataDBFilter) (domain.Users, int64, *errs.AppError)
+	FindById(uint64) (*domain.User, *errs.AppError)
+	FindByUuid(string) (*domain.User, *errs.AppError)
 }
