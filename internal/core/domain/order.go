@@ -37,12 +37,7 @@ func (o Order) ToOrderDTO() dto.OrderResponse {
 		ExternalId: o.ExternalId,
 		Amount:     helpers.NumberFormat(amount, 2, ".", ","),
 		CreatedAt:  helpers.DatetimeToString(o.CreatedAt),
-		User: dto.UserMeResponse{
-			ID:        o.User.UUID,
-			Name:      o.User.Name,
-			Email:     o.User.Email,
-			CreatedAt: helpers.DatetimeToString(o.User.CreatedAt),
-		},
+		User:       o.User.ToMeDTO(),
 		OrderItems: orderItems,
 	}
 }

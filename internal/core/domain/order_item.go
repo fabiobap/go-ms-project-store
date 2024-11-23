@@ -33,20 +33,12 @@ func NewOrderItem(req dto.NewOrderItemDTO) OrderItem {
 
 func (oi OrderItem) ToOrderItemDTO() dto.OrderItemResponse {
 	amountOrderItem := float64(oi.Amount) / 100
-	amountProduct := float64(oi.Product.Amount) / 100
+	// amountProduct := float64(oi.Product.Amount) / 100
 
 	return dto.OrderItemResponse{
 		Amount:   helpers.NumberFormat(amountOrderItem, 2, ".", ","),
 		Quantity: oi.Quantity,
-		Product: dto.ProductPublicResponse{
-			ID:          oi.Product.UUID,
-			Amount:      helpers.NumberFormat(amountProduct, 2, ".", ","),
-			Name:        oi.Product.Name,
-			Slug:        oi.Product.Slug,
-			Image:       oi.Product.Image,
-			Description: oi.Product.Description,
-			CreatedAt:   helpers.DatetimeToString(oi.Product.CreatedAt),
-		},
+		Product:  oi.Product.ToPublicProductDTO(),
 	}
 }
 

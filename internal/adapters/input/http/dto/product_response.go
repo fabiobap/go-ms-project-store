@@ -19,12 +19,12 @@ type ProductResponse struct {
 }
 
 type ProductPublicResponse struct {
-	ID          uuid.UUID              `json:"id"`
-	Name        string                 `json:"name"`
-	Slug        string                 `json:"slug"`
-	Description string                 `json:"description,omitempty"`
-	Amount      string                 `json:"amount"`
-	Image       string                 `json:"image,omitempty"`
-	CreatedAt   string                 `json:"created_at,omitempty"`
-	Category    CategoryPublicResponse `json:"category,omitempty"`
+	ID          uuid.UUID               `json:"id"`
+	Name        string                  `json:"name"`
+	Slug        string                  `json:"slug"`
+	Description string                  `json:"description,omitempty"`
+	Amount      string                  `json:"amount"`
+	Image       string                  `json:"image,omitempty"`
+	CreatedAt   string                  `json:"created_at,omitempty"`
+	Category    *CategoryPublicResponse `json:"category,omitempty"`
 }

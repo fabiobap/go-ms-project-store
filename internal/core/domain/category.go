@@ -36,6 +36,14 @@ func (c Category) ToCategoryDTO() dto.CategoryResponse {
 	}
 }
 
+func (c Category) ToPublicCategoryDTO() dto.CategoryPublicResponse {
+	return dto.CategoryPublicResponse{
+		Name:      c.Name,
+		Slug:      c.Slug,
+		CreatedAt: helpers.DatetimeToString(c.CreatedAt),
+	}
+}
+
 func (c Categories) ToDTO() []dto.CategoryResponse {
 	dtos := make([]dto.CategoryResponse, len(c))
 	for i, category := range c {
