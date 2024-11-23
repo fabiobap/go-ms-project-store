@@ -30,7 +30,7 @@ func (s DefaultOrderService) CreateOrder(req dto.NewOrderRequest, user_id uint64
 	}
 
 	var total_amount int32
-	orderItems := make([]domain.OrderItem, len(req.Products))
+	orderItems := make([]domain.OrderItem, 0, len(req.Products))
 
 	for _, dbProduct := range products {
 		// Find the quantity from request for this product
