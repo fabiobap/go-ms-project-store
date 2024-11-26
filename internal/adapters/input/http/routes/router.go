@@ -17,6 +17,7 @@ func Routes() *chi.Mux {
 
 	authRepositoryDB := repositories.NewAuthRepositoryDB(dbClient)
 
+	mux.Use(middlewares.Cors)
 	mux.Use(middlewares.StoreRoutePattern)
 	authMiddleware := middlewares.NewAuthMiddleware(authRepositoryDB)
 	abilityMiddleware := middlewares.NewAbilityMiddleware(authRepositoryDB)
